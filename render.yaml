@@ -1,0 +1,15 @@
+# Render Blueprint for LexDraft AI
+services:
+  - type: web
+    name: lexdraft-ai
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: RACK_ENV
+        value: production

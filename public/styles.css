@@ -1,0 +1,207 @@
+/* LexDraft AI - Premium Legal Tech Design System */
+/* Inspired by Harvey AI & Clio Design Language */
+
+:root {
+  --bg-background: #F8F9FC; /* Light gray-blue background for main workspace */
+  --bg-card: #FFFFFF;       /* Pure white cards */
+  --bg-card-hover: #F8FAFC;
+  --bg-sidebar: #0D121F;    /* Deep slate-blue for sidebar */
+  --border-color: #E2E8F0;  /* Subtle gray border */
+  --border-color-subtle: #F1F5F9;
+  
+  --accent-gold: #F59E0B;
+  --accent-gold-light: #FBBF24;
+  --accent-gold-dark: #D97706;
+  --accent-gold-subtle: rgba(245, 158, 11, 0.08);
+  
+  --text-primary: #000000; /* Pure black text */
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Premium Gold Gradients */
+.bg-gradient-gold {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-dark {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8F9FC 100%);
+}
+
+/* Card Styling (Neat & Clean White Surface) */
+.card-legal {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem; /* rounded-2xl */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.card-legal:hover {
+  border-color: #CBD5E1;
+  background-color: var(--bg-card-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02), 0 10px 20px rgba(0, 0, 0, 0.04);
+}
+
+.card-legal-static {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Evidence Borders */
+.critical-evidence-border {
+  border-left: 4px solid var(--accent-gold) !important;
+}
+
+.new-diff-border {
+  border-left: 4px solid #10B981 !important;
+}
+
+/* Sidebar Styling */
+.sidebar-transition {
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Blockquote Style for Important Legal Paragraphs */
+.legal-blockquote {
+  border-left: 3px solid var(--accent-gold);
+  background: var(--accent-gold-subtle);
+  padding: 1rem 1.25rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-family: 'Merriweather', 'Georgia', serif;
+  font-style: italic;
+  color: var(--text-primary);
+}
+
+/* Animated Loading Pulse for AI Processing */
+@keyframes ai-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
+    border-color: rgba(245, 158, 11, 0.7);
+  }
+}
+
+.ai-loading-glow {
+  animation: ai-glow 2s infinite ease-in-out;
+}
+
+/* Court Document Styling */
+.court-document {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #111827;
+  background-color: #FFFFFF;
+  line-height: 1.8;
+}
+
+/* Print Specific Court Layout */
+@media print {
+  /* Hide the main app contents */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Make modal root and the court document printable */
+  #modal-root,
+  #modal-root *,
+  #court-brief-document,
+  #court-brief-document * {
+    visibility: visible;
+  }
+
+  /* Reset layout constraints for printing */
+  #export-modal-overlay {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    background: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  #export-modal-overlay > div {
+    background: none !important;
+    border: none !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    display: block !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  #court-brief-document {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  /* Hide sidebars, action bars, etc. */
+  aside, header, button, #toast-container, .no-print {
+    display: none !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border: 1px solid #333333 !important;
+    padding: 8px !important;
+    color: #000000 !important;
+  }
+
+  th {
+    background-color: #F1F5F9 !important;
+  }
+}

@@ -1,0 +1,23 @@
+# Python
+processor/venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Ruby & Bundler
+.bundle/
+vendor/bundle/
+
+# Temporary & Storage
+uploads/*
+!uploads/.gitkeep
+*.log
+*.tmp
+.DS_Store
+
+# SQLite DB (optional: keep seed database or ignore local dev copies)
+# case_organizer.db

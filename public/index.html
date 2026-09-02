@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LexDraft AI | Case Evidence Organizer</title>
+  
+  <!-- Fonts: Serif for Authority (Playfair/Merriweather), Sans for UI (Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: '#F8F9FC',
+            card: {
+              DEFAULT: '#FFFFFF',
+              hover: '#F8FAFC',
+              muted: '#F1F5F9'
+            },
+            sidebar: {
+              DEFAULT: '#0D121F',
+              accent: '#1E293B',
+              border: '#1E293B'
+            },
+            accent: {
+              DEFAULT: '#F59E0B',
+              light: '#FBBF24',
+              dark: '#D97706',
+              subtle: 'rgba(245, 158, 11, 0.08)'
+            },
+            slate: {
+              800: '#000000',
+              850: '#000000',
+              900: '#000000',
+              950: '#F8F9FC'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'Merriweather', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            reading: ['Merriweather', 'Georgia', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-accent selection:text-slate-950 overflow-x-hidden">
+  
+  <!-- App Layout Wrapper (Sidebar + Main Area) -->
+  <div class="flex min-h-screen w-full">
+    
+    <!-- Collapsible Sidebar (AppSidebar) -->
+    <aside id="app-sidebar" class="w-[260px] sidebar-transition sticky top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col justify-between shrink-0 z-30 select-none">
+      
+      <!-- Top Section: Brand + Logo -->
+      <div class="flex flex-col">
+        <div class="p-5 flex items-center justify-between border-b border-sidebar-border/60">
+          <div class="flex items-center space-x-3 cursor-pointer overflow-hidden" onclick="App.navigate('dashboard')">
+            <div class="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-accent/20 shrink-0">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+            <div class="sidebar-label">
+              <h1 class="font-serif font-bold text-base tracking-wide text-white leading-tight">LexDraft AI</h1>
+              <p class="text-[10px] text-accent font-medium tracking-wider uppercase">Case Evidence Organizer</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clean Navigation Items (Focused on Dashboard, New Case, Evidence Vault, Clients, Settings) -->
+        <nav class="p-3 space-y-1.5 overflow-y-auto max-h-[calc(100vh-210px)]" id="sidebar-nav">
+          
+          <!-- Dashboard (Dedicated Tab) -->
+          <button onclick="App.navigate('dashboard')" class="nav-item flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-sidebar-accent" data-route="dashboard">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-accent shrink-0"></i>
+            <span class="sidebar-label">Dashboard</span>
+          </button>
+
+          <!-- New Case (Dedicated Section) -->
+          <button onclick="App.navigate('new-case')" class="nav-item flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-sidebar-accent" data-route="new-case">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-accent shrink-0"></i>
+            <span class="sidebar-label">New Case</span>
+            <span class="sidebar-label ml-auto px-1.5 py-0.5 rounded bg-accent/20 text-accent text-[9px] font-bold">SETUP</span>
+          </button>
+
+          <!-- Case Evidence Vault (4GB Multi-Modal) -->
+          <button onclick="App.navigate('cases-list')" class="nav-item flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-sidebar-accent" data-route="cases-list">
+            <i data-lucide="folder-lock" class="w-4 h-4 text-accent shrink-0"></i>
+            <span class="sidebar-label">Evidence Vault (4GB)</span>
+          </button>
+
+          <div class="pt-3 pb-1 px-3">
+            <span class="sidebar-label text-[10px] uppercase font-bold tracking-widest text-slate-500">Chamber Management</span>
+          </div>
+
+          <!-- Clients Directory -->
+          <button onclick="App.navigate('clients')" class="nav-item flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-sidebar-accent" data-route="clients">
+            <i data-lucide="users" class="w-4 h-4 text-accent shrink-0"></i>
+            <span class="sidebar-label">Clients Directory</span>
+          </button>
+
+          <!-- Settings -->
+          <button onclick="App.navigate('settings')" class="nav-item flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-sidebar-accent" data-route="settings">
+            <i data-lucide="settings" class="w-4 h-4 text-accent shrink-0"></i>
+            <span class="sidebar-label">Settings & Configuration</span>
+          </button>
+
+        </nav>
+      </div>
+
+      <!-- Bottom Section: AI Engine Badge & User Bar (Clean, no Gemini branding) -->
+      <div class="p-3 border-t border-sidebar-border/80 space-y-2">
+        <div class="sidebar-label p-2.5 rounded-xl bg-slate-900 border border-sidebar-border flex items-center justify-between text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-mono text-[11px] text-slate-300">Legal AI Engine</span>
+          </div>
+          <span class="text-[10px] font-bold text-accent">Active</span>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center space-x-2.5 overflow-hidden">
+            <div class="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center text-accent text-xs font-bold shrink-0">
+              MM
+            </div>
+            <div class="sidebar-label overflow-hidden">
+              <p class="text-xs font-semibold text-white truncate">Adv. Mayank Mitra</p>
+              <p class="text-[10px] text-slate-400 truncate">High Court Chambers</p>
+            </div>
+          </div>
+
+          <!-- Collapse Sidebar Toggle Button -->
+          <button onclick="App.toggleSidebar()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Toggle Sidebar Width">
+            <i data-lucide="panel-left-close" id="sidebar-toggle-icon" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Main Content Layout (AppLayout) -->
+    <div class="flex-1 flex flex-col min-w-0 bg-background">
+      
+      <!-- Top Application Header -->
+      <header class="sticky top-0 z-20 bg-background/90 backdrop-blur-md border-b border-slate-200 px-6 py-3.5 flex items-center justify-between">
+        
+        <!-- Global Search Bar -->
+        <div class="relative w-96 max-w-full">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-2.5 text-slate-400"></i>
+          <input type="text" id="global-search-input" oninput="App.handleGlobalSearch(this.value)" placeholder="Search matters, parties, evidence, or documents..." 
+            class="w-full bg-card border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-accent transition shadow-sm">
+        </div>
+
+        <!-- Top Right Actions -->
+        <div class="flex items-center space-x-3">
+          
+          <button onclick="App.navigate('new-case')" class="px-3.5 py-1.5 rounded-xl bg-gradient-gold text-slate-950 font-bold text-xs hover:brightness-110 transition shadow-md shadow-accent/15 flex items-center space-x-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>New Case</span>
+          </button>
+
+          <!-- Notification Drawer Toggle -->
+          <div class="relative">
+            <button onclick="App.toggleNotificationDrawer()" class="p-2 rounded-xl bg-card hover:bg-card-hover border border-sidebar-border text-slate-300 hover:text-white transition relative">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-accent text-slate-950 text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+            </button>
+          </div>
+
+          <!-- Reset / Reload Sample Data -->
+          <button onclick="App.reloadSeedData()" class="p-2 rounded-xl bg-card hover:bg-card-hover border border-sidebar-border text-slate-300 hover:text-white transition" title="Reset Landmark Sample Cases">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          </button>
+
+        </div>
+
+      </header>
+
+      <!-- Notification Drawer Dropdown -->
+      <div id="notif-drawer" class="hidden fixed right-6 top-16 w-96 max-h-[500px] z-50 bg-card border border-sidebar-border rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="p-3.5 bg-slate-900 border-b border-sidebar-border flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="bell-ring" class="w-4 h-4 text-accent"></i>
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Live Activity & Ingestion Feed</h3>
+          </div>
+          <button onclick="App.markAllNotificationsRead()" class="text-[10px] text-slate-400 hover:text-accent transition">Mark all read</button>
+        </div>
+        <div id="notif-list" class="overflow-y-auto divide-y divide-sidebar-border/60 flex-1 p-1">
+          <!-- Injected by app.js -->
+        </div>
+      </div>
+
+      <!-- Main Dynamic Content Container -->
+      <main id="app-root" class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+        <!-- Rendered dynamically by active route -->
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Modals Container -->
+  <div id="modal-root"></div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
+
+  <!-- Component Scripts -->
+  <script src="components/dashboard.js?v=1.0.5"></script>
+  <script src="components/new_case_view.js?v=1.0.5"></script>
+  <script src="components/summary_view.js?v=1.0.5"></script>
+  <script src="components/timeline_view.js?v=1.0.5"></script>
+  <script src="components/evidence_manager.js?v=1.0.5"></script>
+  <script src="components/diff_inspector.js?v=1.0.5"></script>
+  <script src="components/source_viewer_modal.js?v=1.0.5"></script>
+  <script src="components/export_modal.js?v=1.0.5"></script>
+  <script src="components/clients_view.js?v=1.0.5"></script>
+  <script src="components/settings_view.js?v=1.0.5"></script>
+  <script src="app.js?v=1.0.5"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
