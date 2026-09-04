@@ -61,8 +61,11 @@
 </head>
 <body class="bg-background text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-accent selection:text-slate-950 overflow-x-hidden">
   
+  <!-- Unauthenticated Landing Page Container -->
+  <div id="landing-root" class="hidden min-h-screen w-full"></div>
+
   <!-- App Layout Wrapper (Sidebar + Main Area) -->
-  <div class="flex min-h-screen w-full">
+  <div id="app-layout" class="flex min-h-screen w-full">
     
     <!-- Collapsible Sidebar (AppSidebar) -->
     <aside id="app-sidebar" class="w-[260px] sidebar-transition sticky top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col justify-between shrink-0 z-30 select-none">
@@ -134,19 +137,25 @@
 
         <div class="flex items-center justify-between pt-1">
           <div class="flex items-center space-x-2.5 overflow-hidden">
-            <div class="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center text-accent text-xs font-bold shrink-0">
+            <div id="sidebar-user-avatar" class="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center text-accent text-xs font-bold shrink-0">
               MM
             </div>
             <div class="sidebar-label overflow-hidden">
-              <p class="text-xs font-semibold text-white truncate">Adv. Mayank Mitra</p>
-              <p class="text-[10px] text-slate-400 truncate">High Court Chambers</p>
+              <p id="sidebar-user-name" class="text-xs font-semibold text-white truncate">Adv. Mayank Mitra</p>
+              <p id="sidebar-user-email" class="text-[10px] text-slate-400 truncate">advocate@chambers.in</p>
             </div>
           </div>
 
-          <!-- Collapse Sidebar Toggle Button -->
-          <button onclick="App.toggleSidebar()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Toggle Sidebar Width">
-            <i data-lucide="panel-left-close" id="sidebar-toggle-icon" class="w-4 h-4"></i>
-          </button>
+          <div class="flex items-center space-x-1">
+            <!-- Sign Out Button -->
+            <button onclick="App.handleSignOut()" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition" title="Sign Out">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+            <!-- Collapse Sidebar Toggle Button -->
+            <button onclick="App.toggleSidebar()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Toggle Sidebar Width">
+              <i data-lucide="panel-left-close" id="sidebar-toggle-icon" class="w-4 h-4"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -220,7 +229,9 @@
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
   <!-- Component Scripts -->
-  <script src="components/dashboard.js?v=1.0.5"></script>
+  <script src="components/landing_page.js?v=1.0.6"></script>
+  <script src="components/auth_modal.js?v=1.0.6"></script>
+  <script src="components/dashboard.js?v=1.0.6"></script>
   <script src="components/new_case_view.js?v=1.0.5"></script>
   <script src="components/summary_view.js?v=1.0.5"></script>
   <script src="components/timeline_view.js?v=1.0.5"></script>

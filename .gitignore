@@ -21,3 +21,5 @@ uploads/*
 
 # SQLite DB (optional: keep seed database or ignore local dev copies)
 # case_organizer.db
+*.db-shm
+*.db-wal

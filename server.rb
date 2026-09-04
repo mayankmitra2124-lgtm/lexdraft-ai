@@ -19,6 +19,7 @@ require_relative 'services/transcription_service'
 require_relative 'services/certificate_service'
 require_relative 'services/gemini_service'
 require_relative 'services/aggregation_service'
+require_relative 'services/auth_service'
 
 # Initialize DB & Seed Data
 Database.init
@@ -177,63 +178,176 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
     JSON.parse(req.body) rescue {}
   end
 
+  def extract_current_user(req)
+    auth_header = (req['authorization'] || req['Authorization']).to_s.force_encoding('UTF-8')
+    token = nil
+    if auth_header =~ /\ABearer\s+(.+)\z/i
+      token = $1.strip.force_encoding('UTF-8')
+    end
+
+    if token.nil? && req['Cookie']
+      cookies = WEBrick::Cookie.parse(req['Cookie']) rescue []
+      sess_cookie = cookies.find { |c| c.name == 'lexdraft_token' }
+      token = sess_cookie.value.to_s.strip.force_encoding('UTF-8') if sess_cookie
+    end
+
+    return nil if token.nil? || token.empty?
+    AuthService.authenticate_token(token)
+  rescue => e
+    nil
+  end
+
   def handle_request(req, res)
     path = req.path.chomp('/').force_encoding('UTF-8')
     method = req.request_method
 
+    set_cors_headers(res)
+
+    # ==========================================
+    # Public Authentication Endpoints
+    # ==========================================
+    if method == 'POST' && path == '/api/auth/signup'
+      body = parse_json_body(req)
+      result = AuthService.signup(body)
+      if result[:success]
+        json_response(res, { 'token' => result[:token], 'user' => result[:user] }, result[:status])
+      else
+        json_response(res, { 'errors' => result[:errors] }, result[:status])
+      end
+      return
+
+    elsif method == 'POST' && path == '/api/auth/signin'
+      body = parse_json_body(req)
+      result = AuthService.signin(body['email'], body['password'])
+      if result[:success]
+        json_response(res, { 'token' => result[:token], 'user' => result[:user] }, result[:status])
+      else
+        json_response(res, { 'errors' => result[:errors] }, result[:status])
+      end
+      return
+
+    elsif method == 'POST' && path == '/api/auth/signout'
+      auth_header = req['Authorization'] || req['authorization']
+      token = auth_header.to_s.sub(/\ABearer\s+/i, '').strip
+      AuthService.signout(token)
+      json_response(res, { 'success' => true })
+      return
+
+    elsif method == 'POST' && path == '/api/auth/forgot-password'
+      body = parse_json_body(req)
+      email = body['email'].to_s.strip
+      json_response(res, {
+        'success' => true,
+        'message' => "If an account exists for #{email}, a secure password reset link has been dispatched."
+      })
+      return
+
+    elsif method == 'GET' && path == '/api/auth/me'
+      user = extract_current_user(req)
+      if user
+        json_response(res, { 'user' => user })
+      else
+        json_response(res, { 'error' => 'Unauthorized' }, 401)
+      end
+      return
+    end
+
+    # ==========================================
+    # Authentication Guard & Data Isolation
+    # ==========================================
+    current_user = extract_current_user(req)
+
+    # All other /api/ endpoints require authentication (except public system health/seed/analytics)
+    if path.start_with?('/api/') && path != '/api/settings' && path != '/api/seed/reset' && path != '/api/analytics/cost-performance'
+      if current_user.nil?
+        json_response(res, { 'error' => 'Unauthorized. Please sign in to access your case vault.' }, 401)
+        return
+      end
+    end
+
     # SSE Event Stream Endpoint
     if method == 'GET' && path =~ %r{^/api/cases/([^/]+)/events$}
       case_id = $1
+      if current_user && !Database.verify_case_ownership(case_id, current_user['id'])
+        json_response(res, { 'error' => 'Forbidden' }, 403)
+        return
+      end
       handle_sse_stream(case_id, req, res)
       return
     end
 
-    set_cors_headers(res)
-
-    # API Routes
+    # Protected API Routes
     begin
       if method == 'GET' && path == '/api/cases'
-        json_response(res, Database.list_cases)
+        user_id = current_user ? current_user['id'] : nil
+        json_response(res, Database.list_cases(user_id))
 
       elsif method == 'POST' && path == '/api/cases'
         body = parse_json_body(req)
-        created = Database.create_case(body)
+        user_id = current_user ? current_user['id'] : nil
+        created = Database.create_case(body, user_id)
         json_response(res, created, 201)
 
       elsif method == 'GET' && path =~ %r{^/api/cases/([^/]+)$}
         case_id = $1
-        c = Database.get_case(case_id)
+        user_id = current_user ? current_user['id'] : nil
+        c = Database.get_case(case_id, user_id)
         if c
           json_response(res, c)
         else
-          json_response(res, { 'error' => 'Case not found' }, 404)
+          json_response(res, { 'error' => 'Case not found or access denied' }, 404)
         end
 
       elsif method == 'PUT' && path =~ %r{^/api/cases/([^/]+)$}
         case_id = $1
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
         body = parse_json_body(req)
-        updated = Database.update_case(case_id, body)
+        updated = Database.update_case(case_id, body, user_id)
         json_response(res, updated)
 
       elsif method == 'DELETE' && path =~ %r{^/api/cases/([^/]+)$}
         case_id = $1
-        Database.delete_case(case_id)
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
+        Database.delete_case(case_id, user_id)
         json_response(res, { 'success' => true })
 
       # Evidence Files API
       elsif method == 'GET' && path =~ %r{^/api/cases/([^/]+)/files$}
         case_id = $1
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
         files = Database.list_files(case_id)
         json_response(res, files)
 
       elsif method == 'POST' && path =~ %r{^/api/cases/([^/]+)/evidence$}
         case_id = $1
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
         handle_file_upload(case_id, req, res)
 
       elsif method == 'POST' && path =~ %r{^/api/files/([^/]+)/retry$}
         file_id = $1
         file_rec = Database.get_file(file_id)
         if file_rec
+          user_id = current_user ? current_user['id'] : nil
+          if user_id && !Database.verify_case_ownership(file_rec['case_id'], user_id)
+            json_response(res, { 'error' => 'Forbidden' }, 403)
+            return
+          end
           Database.update_file_status(file_id, 'Queued', progress: 0, error_message: nil)
           WORKER_QUEUE.push({ case_id: file_rec['case_id'], file_id: file_id })
           json_response(res, { 'success' => true, 'status' => 'Queued' })
@@ -246,9 +360,13 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
         file_rec = Database.get_file(file_id)
         if file_rec
           case_id = file_rec['case_id']
+          user_id = current_user ? current_user['id'] : nil
+          if user_id && !Database.verify_case_ownership(case_id, user_id)
+            json_response(res, { 'error' => 'Forbidden' }, 403)
+            return
+          end
           Database.delete_file(file_id)
           StorageService.delete_file(file_rec['storage_path'])
-          # Re-aggregate remaining files
           AggregationService.aggregate_case_evidence(case_id)
           json_response(res, { 'success' => true })
         else
@@ -258,17 +376,33 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
       # Master Summary & Diff APIs
       elsif method == 'GET' && path =~ %r{^/api/cases/([^/]+)/summary$}
         case_id = $1
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
         summary = Database.get_latest_summary(case_id)
         json_response(res, summary || {})
 
       elsif method == 'GET' && path =~ %r{^/api/cases/([^/]+)/diffs$}
         case_id = $1
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
         diffs = Database.list_diffs(case_id)
         json_response(res, diffs)
 
       elsif method == 'GET' && path =~ %r{^/api/cases/([^/]+)/extractions/([^/]+)$}
         parts = path.split('/')
+        case_id = parts[3]
         file_id = parts[5]
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
         ext = Database.get_extraction(file_id)
         if ext
           json_response(res, ext)
@@ -280,7 +414,12 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
       elsif method == 'GET' && path =~ %r{^/api/cases/([^/]+)/files/([^/]+)/certificate$}
         case_id = $1
         file_id = $2
-        case_record = Database.get_case(case_id)
+        user_id = current_user ? current_user['id'] : nil
+        if user_id && !Database.verify_case_ownership(case_id, user_id)
+          json_response(res, { 'error' => 'Forbidden' }, 403)
+          return
+        end
+        case_record = Database.get_case(case_id, user_id)
         file_record = Database.get_file(file_id)
 
         if case_record && file_record
@@ -292,7 +431,8 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
 
       # Notifications API
       elsif method == 'GET' && path == '/api/notifications'
-        notifs = Database.list_notifications(30)
+        user_id = current_user ? current_user['id'] : nil
+        notifs = Database.list_notifications(30, user_id)
         json_response(res, notifs)
 
       elsif method == 'POST' && path == '/api/notifications/read'

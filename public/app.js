@@ -14,8 +14,24 @@ window.fetch = function(url, options = {}) {
           xhr.setRequestHeader(key, value);
         }
       }
+
+      // Feature: Server-Side Token Authorization Header
+      const token = localStorage.getItem('lexdraft_token');
+      if (token && (!options.headers || !options.headers['Authorization'])) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
       
       xhr.onload = function() {
+        if (xhr.status === 401 && !url.includes('/api/auth/')) {
+          localStorage.removeItem('lexdraft_token');
+          if (window.App && App.state) {
+            App.state.authToken = null;
+            App.state.currentUser = null;
+            App.renderLandingPage();
+            App.showToast('Your session has expired. Please sign in again.', 'warning');
+          }
+        }
+
         resolve({
           ok: xhr.status >= 200 && xhr.status < 300,
           status: xhr.status,
@@ -49,9 +65,11 @@ window.fetch = function(url, options = {}) {
 // LexDraft AI & Case Evidence Organizer — Core Frontend State Store & Router
 const App = {
   state: {
-    currentRoute: 'dashboard', // dashboard, new-case, cases-list, case-detail, research, arguments, delay-prediction, case-analysis, templates, clients, settings
+    currentRoute: 'dashboard',
+    authToken: localStorage.getItem('lexdraft_token') || null,
+    currentUser: null,
     activeCaseId: null,
-    activeCaseTab: 'chronology', // chronology, summary, evidence, diffs
+    activeCaseTab: 'chronology',
     sidebarCollapsed: false,
     cases: [],
     currentCase: null,
@@ -67,9 +85,28 @@ const App = {
   },
 
   async init() {
-    await this.fetchSettings();
-    await this.loadDashboardData();
-    this.navigate('dashboard');
+    if (this.state.authToken) {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          this.state.currentUser = data.user;
+          this.showAuthenticatedApp();
+          this.updateSidebarProfile();
+          await this.fetchSettings();
+          await this.loadDashboardData();
+          this.navigate('dashboard');
+          return;
+        }
+      } catch (err) {
+        console.warn('Auth check error:', err);
+      }
+      this.state.authToken = null;
+      localStorage.removeItem('lexdraft_token');
+    }
+
+    // Unauthenticated user: Show Landing Page
+    this.renderLandingPage();
   },
 
   // ==========================================
@@ -655,6 +692,213 @@ const App = {
       toast.classList.add('opacity-0', 'translate-y-2');
       setTimeout(() => toast.remove(), 300);
     }, 4000);
+  },
+
+  // ==========================================
+  // Authentication & Personalization Handlers
+  // ==========================================
+  renderLandingPage() {
+    const landingRoot = document.getElementById('landing-root');
+    const appLayout = document.getElementById('app-layout');
+    if (appLayout) appLayout.classList.add('hidden');
+    if (landingRoot) {
+      landingRoot.classList.remove('hidden');
+      landingRoot.innerHTML = typeof LandingPage !== 'undefined' ? LandingPage.render() : '<div class="p-8 text-center">LexDraft AI</div>';
+    }
+    lucide.createIcons();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  showAuthenticatedApp() {
+    const landingRoot = document.getElementById('landing-root');
+    const appLayout = document.getElementById('app-layout');
+    if (landingRoot) {
+      landingRoot.classList.add('hidden');
+      landingRoot.innerHTML = '';
+    }
+    if (appLayout) {
+      appLayout.classList.remove('hidden');
+    }
+    lucide.createIcons();
+  },
+
+  updateSidebarProfile() {
+    const u = this.state.currentUser;
+    if (!u) return;
+
+    const avatarEl = document.getElementById('sidebar-user-avatar');
+    const nameEl = document.getElementById('sidebar-user-name');
+    const emailEl = document.getElementById('sidebar-user-email');
+
+    const first = (u.first_name || '').trim();
+    const last = (u.last_name || '').trim();
+    const initials = ((first[0] || '') + (last[0] || '')).toUpperCase() || 'AD';
+
+    if (avatarEl) avatarEl.textContent = initials;
+    if (nameEl) nameEl.textContent = `Adv. ${first} ${last}`.trim() || 'Advocate';
+    if (emailEl) emailEl.textContent = u.email || '';
+  },
+
+  openAuthModal(mode = 'signin', error = null) {
+    const modalRoot = document.getElementById('modal-root');
+    if (!modalRoot) return;
+    modalRoot.innerHTML = typeof AuthModal !== 'undefined' ? AuthModal.render(mode, error) : '';
+    lucide.createIcons();
+  },
+
+  closeAuthModal() {
+    const modalRoot = document.getElementById('modal-root');
+    if (modalRoot) modalRoot.innerHTML = '';
+  },
+
+  async handleSignIn(event) {
+    if (event) event.preventDefault();
+    const form = event.target;
+    const email = form.email ? form.email.value.trim() : '';
+    const password = form.password ? form.password.value : '';
+
+    if (!email || !password) {
+      this.openAuthModal('signin', 'Please enter your email and password.');
+      return;
+    }
+
+    try {
+      if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = true;
+      const res = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = false;
+
+      if (!res.ok) {
+        this.openAuthModal('signin', data.error || 'Invalid email or password.');
+        return;
+      }
+
+      // Save token and state
+      localStorage.setItem('lexdraft_token', data.token);
+      this.state.authToken = data.token;
+      this.state.currentUser = data.user;
+
+      this.closeAuthModal();
+      this.showAuthenticatedApp();
+      this.updateSidebarProfile();
+
+      await this.fetchSettings();
+      await this.loadDashboardData();
+      await this.navigate('dashboard');
+
+      this.showToast(`Welcome back, ${data.user.first_name}!`, 'success');
+    } catch (err) {
+      if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = false;
+      this.openAuthModal('signin', `Sign in error: ${err.message}`);
+    }
+  },
+
+  async handleSignUp(event) {
+    if (event) event.preventDefault();
+    const form = event.target;
+    const firstName = form.first_name ? form.first_name.value.trim() : '';
+    const lastName = form.last_name ? form.last_name.value.trim() : '';
+    const email = form.email ? form.email.value.trim() : '';
+    const password = form.password ? form.password.value : '';
+    const passwordConfirmation = form.password_confirmation ? form.password_confirmation.value : '';
+
+    if (!firstName || !lastName || !email || !password) {
+      this.openAuthModal('signup', 'All fields are required.');
+      return;
+    }
+
+    if (password.length < 8) {
+      this.openAuthModal('signup', 'Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (password !== passwordConfirmation) {
+      this.openAuthModal('signup', 'Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    try {
+      if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = true;
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          password: password,
+          password_confirmation: passwordConfirmation
+        })
+      });
+
+      const data = await res.json();
+      if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = false;
+
+      if (!res.ok) {
+        this.openAuthModal('signup', data.error || 'Failed to create account.');
+        return;
+      }
+
+      // Save token and state
+      localStorage.setItem('lexdraft_token', data.token);
+      this.state.authToken = data.token;
+      this.state.currentUser = data.user;
+
+      this.closeAuthModal();
+      this.showAuthenticatedApp();
+      this.updateSidebarProfile();
+
+      await this.fetchSettings();
+      await this.loadDashboardData();
+      await this.navigate('dashboard');
+
+      this.showToast(`Chamber account initialized for ${data.user.first_name} ${data.user.last_name}!`, 'success');
+    } catch (err) {
+      if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = false;
+      this.openAuthModal('signup', `Sign up error: ${err.message}`);
+    }
+  },
+
+  async handleSignOut() {
+    try {
+      if (this.state.authToken) {
+        await fetch('/api/auth/signout', { method: 'POST' });
+      }
+    } catch (e) {
+      console.warn('Signout request error:', e);
+    }
+
+    localStorage.removeItem('lexdraft_token');
+    this.state.authToken = null;
+    this.state.currentUser = null;
+    this.closeSSE();
+    this.renderLandingPage();
+    this.showToast('You have been signed out safely.', 'info');
+  },
+
+  async handleForgotPassword(event) {
+    if (event) event.preventDefault();
+    const form = event.target;
+    const email = form.email ? form.email.value.trim() : '';
+    if (!email) return;
+
+    try {
+      await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      this.closeAuthModal();
+      this.showToast('If registered, reset instructions have been dispatched to your email.', 'info');
+    } catch (err) {
+      this.closeAuthModal();
+      this.showToast('If registered, reset instructions have been dispatched to your email.', 'info');
+    }
   }
 };
 

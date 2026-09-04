@@ -5,13 +5,28 @@ const Dashboard = {
     const totalFiles = cases.reduce((acc, c) => acc + (c.total_files || 0), 0);
     const pendingPipeline = cases.reduce((acc, c) => acc + (c.pending_files || 0), 0);
 
+    // Feature 5: Dynamic Time-of-Day Greeting & Personalization
+    const hour = new Date().getHours();
+    let timeGreeting = 'Good morning';
+    if (hour >= 12 && hour < 17) {
+      timeGreeting = 'Good afternoon';
+    } else if (hour >= 17 || hour < 5) {
+      timeGreeting = 'Good evening';
+    }
+
+    const user = App.state.currentUser;
+    const firstName = user && user.first_name ? user.first_name : 'Advocate';
+    const chamberTitle = user && user.first_name && user.last_name 
+      ? `Chamber of Adv. ${user.first_name} ${user.last_name} • Real-time Matter Overview`
+      : "Here's an overview of your legal workspace.";
+
     return `
       <div class="space-y-8 animate-fadeIn">
         
         <!-- Welcome & Chamber Header -->
         <div class="space-y-1.5">
-          <h2 class="font-serif text-3xl font-semibold text-slate-900 tracking-wide">Good morning, Advocate</h2>
-          <p class="text-xs text-slate-500 font-sans">Here's an overview of your legal workspace.</p>
+          <h2 class="font-serif text-3xl font-semibold text-slate-900 tracking-wide">${timeGreeting}, ${escapeHtml(firstName)}</h2>
+          <p class="text-xs text-slate-500 font-sans">${escapeHtml(chamberTitle)}</p>
         </div>
 
         <!-- 1. StatsCards (Row of 4 Cards matching User Image) -->

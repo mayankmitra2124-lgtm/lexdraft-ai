@@ -37,9 +37,37 @@ module Database
   def self.init
     db = connection
 
+    # Users Table
+    db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        salt TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    SQL
+
+    # User Sessions Table
+    db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    SQL
+
+    # Cases Table
     db.execute <<-SQL
       CREATE TABLE IF NOT EXISTS cases (
         id TEXT PRIMARY KEY,
+        user_id TEXT,
         name TEXT NOT NULL,
         case_number TEXT,
         court_name TEXT,
@@ -51,9 +79,17 @@ module Database
         max_files INTEGER DEFAULT 100,
         has_unread_changes INTEGER DEFAULT 0,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     SQL
+
+    # Migration for existing databases
+    begin
+      db.execute("ALTER TABLE cases ADD COLUMN user_id TEXT")
+    rescue SQLite3::SQLException
+      # Column already exists
+    end
 
     db.execute <<-SQL
       CREATE TABLE IF NOT EXISTS evidence_files (
@@ -211,33 +247,50 @@ module Database
     puts "Database initialized successfully at #{DB_PATH}"
   end
 
-  # Case Operations
-  def self.list_cases
-    cases = query("SELECT * FROM cases ORDER BY updated_at DESC")
+  # Case Operations with Per-User Multi-Tenant Isolation
+  def self.list_cases(user_id = nil)
+    cases = if user_id
+              query("SELECT * FROM cases WHERE user_id = ? ORDER BY updated_at DESC", [user_id.to_s])
+            else
+              query("SELECT * FROM cases ORDER BY updated_at DESC")
+            end
     cases.map { |c| enrich_case_summary(c) }
   end
 
-  def self.get_case(id)
+  def self.get_case(id, user_id = nil)
     id_clean = id.to_s.dup.force_encoding('UTF-8')
-    c = query_one("SELECT * FROM cases WHERE id = ?", [id_clean])
+    c = if user_id
+          query_one("SELECT * FROM cases WHERE id = ? AND (user_id = ? OR user_id IS NULL)", [id_clean, user_id.to_s])
+        else
+          query_one("SELECT * FROM cases WHERE id = ?", [id_clean])
+        end
     return nil unless c
     enrich_case_summary(c)
   end
 
-  def self.create_case(data)
+  def self.verify_case_ownership(case_id, user_id)
+    return true if user_id.nil?
+    cid = case_id.to_s.dup.force_encoding('UTF-8')
+    row = query_one("SELECT id FROM cases WHERE id = ? AND (user_id = ? OR user_id IS NULL)", [cid, user_id.to_s])
+    !row.nil?
+  end
+
+  def self.create_case(data, user_id = nil)
     id = data['id'] || "case_#{Time.now.to_i}_#{rand(1000..9999)}"
     now = Time.now.utc.iso8601
     tier = data['tier'] || 'pro'
     max_bytes = tier == 'basic' ? 524288000 : 4294967296 # 500MB vs 4GB
     max_files = tier == 'basic' ? 10 : 100
+    uid = user_id || data['user_id']
 
     connection.execute(
       <<-SQL,
-        INSERT INTO cases (id, name, case_number, court_name, objective, parties_info, hearing_date, tier, max_storage_bytes, max_files, has_unread_changes, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+        INSERT INTO cases (id, user_id, name, case_number, court_name, objective, parties_info, hearing_date, tier, max_storage_bytes, max_files, has_unread_changes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
       SQL
       [
         id,
+        uid,
         data['name'] || 'Untitled Case',
         data['case_number'] || '',
         data['court_name'] || 'High Court of Delhi',
@@ -259,10 +312,10 @@ module Database
       "info"
     )
 
-    get_case(id)
+    get_case(id, uid)
   end
 
-  def self.update_case(id, data)
+  def self.update_case(id, data, user_id = nil)
     now = Time.now.utc.iso8601
     fields = []
     values = []
@@ -274,18 +327,29 @@ module Database
       end
     end
 
-    return get_case(id) if fields.empty?
+    return get_case(id, user_id) if fields.empty?
 
     fields << "updated_at = ?"
     values << now
     values << id
 
-    connection.execute("UPDATE cases SET #{fields.join(', ')} WHERE id = ?", values)
-    get_case(id)
+    sql = if user_id
+            values << user_id.to_s
+            "UPDATE cases SET #{fields.join(', ')} WHERE id = ? AND user_id = ?"
+          else
+            "UPDATE cases SET #{fields.join(', ')} WHERE id = ?"
+          end
+
+    connection.execute(sql, values)
+    get_case(id, user_id)
   end
 
-  def self.delete_case(id)
-    connection.execute("DELETE FROM cases WHERE id = ?", [id])
+  def self.delete_case(id, user_id = nil)
+    if user_id
+      connection.execute("DELETE FROM cases WHERE id = ? AND user_id = ?", [id.to_s, user_id.to_s])
+    else
+      connection.execute("DELETE FROM cases WHERE id = ?", [id.to_s])
+    end
   end
 
   # Evidence File Operations
@@ -556,17 +620,31 @@ module Database
     id
   end
 
-  def self.list_notifications(limit = 20)
-    query(
-      <<-SQL,
-        SELECT n.*, c.name as case_name
-        FROM notifications n
-        LEFT JOIN cases c ON n.case_id = c.id
-        ORDER BY n.created_at DESC
-        LIMIT ?
-      SQL
-      [limit]
-    )
+  def self.list_notifications(limit = 20, user_id = nil)
+    if user_id
+      query(
+        <<-SQL,
+          SELECT n.*, c.name as case_name
+          FROM notifications n
+          LEFT JOIN cases c ON n.case_id = c.id
+          WHERE c.user_id = ? OR c.user_id IS NULL
+          ORDER BY n.created_at DESC
+          LIMIT ?
+        SQL
+        [user_id.to_s, limit]
+      )
+    else
+      query(
+        <<-SQL,
+          SELECT n.*, c.name as case_name
+          FROM notifications n
+          LEFT JOIN cases c ON n.case_id = c.id
+          ORDER BY n.created_at DESC
+          LIMIT ?
+        SQL
+        [limit]
+      )
+    end
   end
 
   def self.mark_notifications_read(case_id = nil)
