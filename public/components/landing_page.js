@@ -30,7 +30,7 @@ const LandingPage = {
         <!-- Hero Section -->
         <section class="relative min-h-[85vh] bg-[#15171C] text-[#EDEAE3] flex flex-col justify-center items-center px-6 overflow-hidden">
           <!-- Engraved Legal Heritage Backdrop -->
-          <div class="absolute inset-0 bg-cover bg-bottom bg-no-repeat opacity-30 pointer-events-none select-none" style="background-image: url('images/legal-heritage-bg.png');"></div>
+          <div class="absolute inset-0 bg-cover bg-bottom bg-no-repeat opacity-30 pointer-events-none select-none" style="background-image: url('images/legal-heritage-bg.jpg');"></div>
 
           <!-- Subtle Background Curves -->
           <svg

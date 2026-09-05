@@ -207,22 +207,34 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
     # Public Authentication Endpoints
     # ==========================================
     if method == 'POST' && path == '/api/auth/signup'
-      body = parse_json_body(req)
-      result = AuthService.signup(body)
-      if result[:success]
-        json_response(res, { 'token' => result[:token], 'user' => result[:user] }, result[:status])
-      else
-        json_response(res, { 'errors' => result[:errors] }, result[:status])
+      begin
+        body = parse_json_body(req)
+        result = AuthService.signup(body)
+        if result[:success]
+          json_response(res, { 'token' => result[:token], 'user' => result[:user] }, result[:status])
+        else
+          err_msg = result[:errors]&.join(', ') || 'Failed to sign up'
+          json_response(res, { 'errors' => result[:errors], 'error' => err_msg }, result[:status])
+        end
+      rescue => e
+        puts "[Auth Error] Signup failed: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+        json_response(res, { 'error' => "Server error: #{e.message}", 'errors' => [e.message] }, 500)
       end
       return
 
     elsif method == 'POST' && path == '/api/auth/signin'
-      body = parse_json_body(req)
-      result = AuthService.signin(body['email'], body['password'])
-      if result[:success]
-        json_response(res, { 'token' => result[:token], 'user' => result[:user] }, result[:status])
-      else
-        json_response(res, { 'errors' => result[:errors] }, result[:status])
+      begin
+        body = parse_json_body(req)
+        result = AuthService.signin(body['email'], body['password'])
+        if result[:success]
+          json_response(res, { 'token' => result[:token], 'user' => result[:user] }, result[:status])
+        else
+          err_msg = result[:errors]&.join(', ') || 'Invalid credentials'
+          json_response(res, { 'errors' => result[:errors], 'error' => err_msg }, result[:status])
+        end
+      rescue => e
+        puts "[Auth Error] Signin failed: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+        json_response(res, { 'error' => "Server error: #{e.message}", 'errors' => [e.message] }, 500)
       end
       return
 
@@ -594,12 +606,17 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
     public_dir = File.expand_path('../public', __FILE__)
     public_file = File.join(public_dir, clean_path)
     if File.exist?(public_file) && !File.directory?(public_file)
+      mime = mime_for(public_file)
       res.status = 200
-      res['Content-Type'] = mime_for(public_file)
-      res['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res['Pragma'] = 'no-cache'
-      res['Expires'] = '0'
-      res.body = File.read(public_file)
+      res['Content-Type'] = mime
+      if mime.start_with?('image/', 'font/')
+        res['Cache-Control'] = 'public, max-age=86400, immutable'
+      elsif mime.start_with?('application/javascript', 'text/css')
+        res['Cache-Control'] = 'public, max-age=3600'
+      else
+        res['Cache-Control'] = 'no-cache, must-revalidate'
+      end
+      res.body = File.binread(public_file)
       return
     end
 
@@ -610,7 +627,8 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
       if File.exist?(upload_file) && !File.directory?(upload_file)
         res.status = 200
         res['Content-Type'] = mime_for(upload_file)
-        res.body = File.read(upload_file)
+        res['Cache-Control'] = 'public, max-age=86400'
+        res.body = File.binread(upload_file)
         return
       end
     end
@@ -620,7 +638,8 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
     if File.exist?(index_file)
       res.status = 200
       res['Content-Type'] = 'text/html; charset=utf-8'
-      res.body = File.read(index_file)
+      res['Cache-Control'] = 'no-cache, must-revalidate'
+      res.body = File.binread(index_file)
     else
       res.status = 404
       res.body = "Not Found"
@@ -651,6 +670,8 @@ PORT = (ENV['PORT'] || 8080).to_i
 server = WEBrick::HTTPServer.new(
   Port: PORT,
   BindAddress: '0.0.0.0',
+  DoNotReverseLookup: true,
+  MaxClients: 100,
   Logger: WEBrick::Log.new($stdout, WEBrick::Log::INFO)
 )
 
