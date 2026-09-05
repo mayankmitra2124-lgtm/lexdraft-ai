@@ -66,13 +66,13 @@ const AuthModal = {
 
   renderSignInForm() {
     return `
-      <form onsubmit="App.handleSignIn(event)" class="space-y-4">
+      <form id="signin-form" onsubmit="event.preventDefault(); App.handleSignIn(event); return false;" class="space-y-4">
         
         <div class="space-y-1">
           <label class="block text-xs font-semibold text-slate-300">Email Address</label>
           <div class="relative">
             <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
-            <input type="email" name="email" required placeholder="advocate@chambers.in" autofocus
+            <input type="email" id="signin-email" name="email" required placeholder="advocate@chambers.in" autofocus
               class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-sans shadow-inner">
           </div>
         </div>
@@ -86,12 +86,12 @@ const AuthModal = {
           </div>
           <div class="relative">
             <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
-            <input type="password" name="password" required placeholder="••••••••"
+            <input type="password" id="signin-password" name="password" required placeholder="••••••••"
               class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-sans shadow-inner">
           </div>
         </div>
 
-        <button type="submit" ${this.isSubmitting ? 'disabled' : ''} class="w-full py-2.5 rounded-xl bg-gradient-gold text-slate-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-1.5">
+        <button type="button" onclick="App.handleSignIn(event)" ${this.isSubmitting ? 'disabled' : ''} class="w-full py-2.5 rounded-xl bg-gradient-gold text-slate-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-1.5">
           ${this.isSubmitting ? '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Signing In...</span>' : '<i data-lucide="log-in" class="w-4 h-4"></i><span>Sign In to Chamber</span>'}
         </button>
 
@@ -101,19 +101,19 @@ const AuthModal = {
 
   renderSignUpForm() {
     return `
-      <form onsubmit="App.handleSignUp(event)" class="space-y-3.5">
+      <form id="signup-form" onsubmit="event.preventDefault(); App.handleSignUp(event); return false;" class="space-y-3.5">
         
         <!-- Name Inputs Grid -->
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1">
             <label class="block text-[11px] font-semibold text-slate-300">First Name</label>
-            <input type="text" name="first_name" required placeholder="Mayank" autofocus
+            <input type="text" id="signup-firstname" name="first_name" required placeholder="Mayank" autofocus
               class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-sans shadow-inner">
           </div>
 
           <div class="space-y-1">
             <label class="block text-[11px] font-semibold text-slate-300">Last Name</label>
-            <input type="text" name="last_name" required placeholder="Mitra"
+            <input type="text" id="signup-lastname" name="last_name" required placeholder="Mitra"
               class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-sans shadow-inner">
           </div>
         </div>
@@ -123,7 +123,7 @@ const AuthModal = {
           <label class="block text-[11px] font-semibold text-slate-300">Email Address</label>
           <div class="relative">
             <i data-lucide="mail" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400"></i>
-            <input type="email" name="email" required placeholder="advocate@chambers.in"
+            <input type="email" id="signup-email" name="email" required placeholder="advocate@chambers.in"
               class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-sans shadow-inner">
           </div>
         </div>
@@ -149,7 +149,7 @@ const AuthModal = {
           </div>
         </div>
 
-        <button type="submit" ${this.isSubmitting ? 'disabled' : ''} class="w-full py-2.5 rounded-xl bg-gradient-gold text-slate-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-1.5 mt-2">
+        <button type="button" onclick="App.handleSignUp(event)" ${this.isSubmitting ? 'disabled' : ''} class="w-full py-2.5 rounded-xl bg-gradient-gold text-slate-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-1.5 mt-2">
           ${this.isSubmitting ? '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Creating Account...</span>' : '<i data-lucide="user-check" class="w-4 h-4"></i><span>Create Chamber Account</span>'}
         </button>
 

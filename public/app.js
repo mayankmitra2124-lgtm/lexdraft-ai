@@ -1,66 +1,35 @@
-// Bulletproof HTTP client replacing fetch to eliminate WebKit / Safari DOMException 12 errors
-window.fetch = function(url, options = {}) {
-  return new Promise((resolve, reject) => {
-    try {
-      const xhr = new XMLHttpRequest();
-      const method = options.method || 'GET';
-      xhr.open(method, url, true);
-      
-      // Only set explicit headers when body is NOT FormData
-      // (FormData requires browser to auto-set multipart/form-data with boundary)
-      const isFormData = options.body instanceof FormData;
-      if (options.headers && !isFormData) {
-        for (const [key, value] of Object.entries(options.headers)) {
-          xhr.setRequestHeader(key, value);
-        }
-      }
+// Native browser fetch wrapper with automatic token management
+(function() {
+  const originalFetch = (window._nativeFetch || window.fetch).bind(window);
+  window._nativeFetch = originalFetch;
 
-      // Feature: Server-Side Token Authorization Header
-      const token = localStorage.getItem('lexdraft_token');
-      if (token && (!options.headers || !options.headers['Authorization'])) {
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      }
-      
-      xhr.onload = function() {
-        if (xhr.status === 401 && !url.includes('/api/auth/')) {
-          localStorage.removeItem('lexdraft_token');
-          if (window.App && App.state) {
-            App.state.authToken = null;
-            App.state.currentUser = null;
-            App.renderLandingPage();
-            App.showToast('Your session has expired. Please sign in again.', 'warning');
-          }
-        }
+  window.fetch = async function(url, options = {}) {
+    const opts = Object.assign({}, options);
+    opts.headers = Object.assign({}, options.headers || {});
 
-        resolve({
-          ok: xhr.status >= 200 && xhr.status < 300,
-          status: xhr.status,
-          statusText: xhr.statusText,
-          json: () => {
-            try {
-              return Promise.resolve(JSON.parse(xhr.responseText || '{}'));
-            } catch (e) {
-              return Promise.resolve({});
-            }
-          },
-          text: () => Promise.resolve(xhr.responseText || '')
-        });
-      };
-      
-      xhr.onerror = function() {
-        reject(new Error(`Network request to ${url} failed (status ${xhr.status})`));
-      };
-      
-      xhr.ontimeout = function() {
-        reject(new Error(`Request to ${url} timed out`));
-      };
-
-      xhr.send(options.body || null);
-    } catch (err) {
-      reject(err);
+    const token = localStorage.getItem('lexdraft_token');
+    if (token && !opts.headers['Authorization'] && !opts.headers['authorization']) {
+      opts.headers['Authorization'] = `Bearer ${token}`;
     }
-  });
-};
+
+    try {
+      const res = await originalFetch(url, opts);
+      if (res.status === 401 && typeof url === 'string' && !url.includes('/api/auth/')) {
+        localStorage.removeItem('lexdraft_token');
+        if (window.App && App.state) {
+          App.state.authToken = null;
+          App.state.currentUser = null;
+          App.renderLandingPage();
+          App.showToast('Your session has expired. Please sign in again.', 'warning');
+        }
+      }
+      return res;
+    } catch (err) {
+      console.warn('Fetch failed for', url, err);
+      throw new Error(`Network request to ${url} failed (${err.message || 'connection error'})`);
+    }
+  };
+})();
 
 // LexDraft AI & Case Evidence Organizer — Core Frontend State Store & Router
 const App = {
@@ -753,9 +722,16 @@ const App = {
 
   async handleSignIn(event) {
     if (event) event.preventDefault();
-    const form = event.target;
-    const email = form.email ? form.email.value.trim() : '';
-    const password = form.password ? form.password.value : '';
+    if (event) {
+      if (event.preventDefault) event.preventDefault();
+      if (event.stopPropagation) event.stopPropagation();
+    }
+    const form = document.getElementById('signin-form') || (event && event.target && event.target.closest ? event.target.closest('form') : null);
+    const emailEl = document.getElementById('signin-email');
+    const passEl = document.getElementById('signin-password');
+
+    const email = (emailEl ? emailEl.value : (form && form.email ? form.email.value : '')).trim();
+    const password = passEl ? passEl.value : (form && form.password ? form.password.value : '');
 
     if (!email || !password) {
       this.openAuthModal('signin', 'Please enter your email and password.');
@@ -774,7 +750,7 @@ const App = {
       if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = false;
 
       if (!res.ok) {
-        this.openAuthModal('signin', data.error || 'Invalid email or password.');
+        this.openAuthModal('signin', data.error || (data.errors && data.errors.join(', ')) || 'Invalid email or password.');
         return;
       }
 
@@ -799,13 +775,16 @@ const App = {
   },
 
   async handleSignUp(event) {
-    if (event) event.preventDefault();
-    const form = event.target;
-    const firstName = form.first_name ? form.first_name.value.trim() : '';
-    const lastName = form.last_name ? form.last_name.value.trim() : '';
-    const email = form.email ? form.email.value.trim() : '';
-    const password = form.password ? form.password.value : '';
-    const passwordConfirmation = form.password_confirmation ? form.password_confirmation.value : '';
+    if (event) {
+      if (event.preventDefault) event.preventDefault();
+      if (event.stopPropagation) event.stopPropagation();
+    }
+    const form = document.getElementById('signup-form') || (event && event.target && event.target.closest ? event.target.closest('form') : null);
+    const firstName = (document.getElementById('signup-firstname')?.value || (form && form.first_name ? form.first_name.value : '')).trim();
+    const lastName = (document.getElementById('signup-lastname')?.value || (form && form.last_name ? form.last_name.value : '')).trim();
+    const email = (document.getElementById('signup-email')?.value || (form && form.email ? form.email.value : '')).trim();
+    const password = document.getElementById('signup-password')?.value || (form && form.password ? form.password.value : '');
+    const passwordConfirmation = document.getElementById('signup-confirm')?.value || (form && form.password_confirmation ? form.password_confirmation.value : '');
 
     if (!firstName || !lastName || !email || !password) {
       this.openAuthModal('signup', 'All fields are required.');
@@ -840,7 +819,7 @@ const App = {
       if (typeof AuthModal !== 'undefined') AuthModal.isSubmitting = false;
 
       if (!res.ok) {
-        this.openAuthModal('signup', data.error || 'Failed to create account.');
+        this.openAuthModal('signup', data.error || (data.errors && data.errors.join(', ')) || 'Failed to create account.');
         return;
       }
 
