@@ -1,0 +1,805 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project_metadata": {
+    "name": "LexDraft AI (Case Evidence Organizer)",
+    "version": "2.4.0-PROD",
+    "domain": "Applied Legal AI / Multi-Modal Evidence Processing / Indian Evidence Admissibility",
+    "repository": "https://github.com/mayankmitra2124-lgtm/lexdraft-ai.git",
+    "primary_branch": "main",
+    "generated_at": "2026-09-05T08:50:00+05:30",
+    "environment": "macOS / Docker / Render.com",
+    "target_users": "Litigation Advocates, Arbitrators, Corporate Legal Chambers (India)"
+  },
+
+  "executive_architecture_summary": {
+    "pattern": "Polyglot Microservices + Edge Streaming Gateway + Monolithic Legal Core",
+    "layers_count": 4,
+    "primary_languages": ["Ruby (2.6/3.x)", "Python (3.9+)", "TypeScript / JavaScript (ES6+)", "SQL (SQLite3/WAL)"],
+    "primary_gateways": {
+      "web_and_auth": "Ruby WEBrick / Rack on Port 8080 (serves Vanilla SPA + REST API)",
+      "edge_stream_ingestion": "Node.js Express + Multer on Port 8080/3000 (streaming up to 4GB files)",
+      "ai_inference_engine": "Python FastAPI + Uvicorn on Port 8000 (ASR + Multi-Model Orchestration)"
+    },
+    "key_statutory_differentiators": [
+      "Section 65B Indian Evidence Act 1872 & Section 63 Bharatiya Sakshya Adhiniyam 2023 certificate generator",
+      "Statutory 3-year commercial dispute limitation clock (Limitation Act 1963)",
+      "Zero-tolerance deterministic reverse token grounding (anti-hallucination verification)",
+      "Multi-model consensus voting engine (Gemini Flash, GPT-4o, Claude 3.5 Sonnet)",
+      "Cryptographic SHA-256 deduplication cache with 0ms replay and token metering"
+    ]
+  },
+
+  "four_tier_topology": {
+    "layer_1_presentation": {
+      "name": "Presentation & Interaction Layer",
+      "tech_stack": ["HTML5", "Vanilla JavaScript ES6+", "Tailwind CSS (CDN)", "Lucide Icons", "Next.js 16 (Secondary Track)"],
+      "runtime": "Browser DOM (zero-build requirement for public/ track)",
+      "responsibilities": [
+        "Render SPA views: Landing Page, Auth Modal, Chamber Dashboard, Case Ingestion, Evidence Grid, Chronology Timeline, Diff Inspector, Export Suite",
+        "Optimistic UI rendering for instant sub-10ms view switching",
+        "HTML5 audio/video playback with microsecond click-to-seek timestamp binding (`currentTime`)",
+        "Server-Sent Events (SSE) consumer for real-time document extraction progress bars",
+        "Session authentication via Authorization: Bearer <token> stored in localStorage"
+      ]
+    },
+    "layer_2_edge_gateway": {
+      "name": "Edge Streaming Ingestion Gateway",
+      "tech_stack": ["Node.js 18+", "TypeScript", "Express", "Multer (Streaming memory/disk buffer)", "Axios", "Form-Data"],
+      "port": 8080,
+      "source_file": "api/server.ts",
+      "responsibilities": [
+        "Stream large multipart form uploads (up to 4GB) without buffer exhaustion",
+        "Reverse proxy uploads directly to Python AI processor (`/api/v1/ingest`)",
+        "Provide fallback Server-Sent Events progress reporting (`/api/progress/:evidenceId`)",
+        "Serve static assets from public/ directory"
+      ]
+    },
+    "layer_3_core_application": {
+      "name": "Core Legal Application & Persistence Engine",
+      "tech_stack": ["Ruby 2.6/3.x", "WEBrick Servlet", "SQLite3 (WAL Mode)", "JSON", "OpenSSL (PBKDF2-HMAC-SHA256)"],
+      "port": 8080,
+      "source_files": ["server.rb", "db/database.rb", "services/*.rb"],
+      "responsibilities": [
+        "Monolithic REST API controller for case management, evidence indexing, and summary delivery",
+        "Per-user data isolation and chamber partitioning via foreign-key scoped queries",
+        "Statutory compliance generation (Section 65B / Section 63 BSA cryptographic affidavits)",
+        "Master summary aggregation, narrative synthesis, and chronology diff log generation",
+        "High-performance static file serving with smart Cache-Control headers and disabled DNS reverse lookup"
+      ]
+    },
+    "layer_4_ai_processor": {
+      "name": "Multi-Model AI & Verification Engine",
+      "tech_stack": ["Python 3.9+", "FastAPI", "Uvicorn", "Pydantic v2", "Celery", "Whisper / Speech-to-Text", "Google GenAI SDK", "OpenAI SDK", "Anthropic SDK"],
+      "port": 8000,
+      "source_files": ["processor/main.py", "processor/orchestrator.py", "processor/collation.py", "processor/validator.py", "processor/transcription.py"],
+      "responsibilities": [
+        "Audio/Video Speech-to-Text ASR with speaker diarization and timestamp generation before LLM ingestion",
+        "Tier 1 extraction via Google Gemini 2.0 Flash with Cascading Early-Exit Gate (confidence >= 0.90)",
+        "Tier 2 adversarial fan-out to OpenAI GPT-4o and Anthropic Claude 3.5 Sonnet on high complexity/dispute",
+        "Mathematical consensus collation without secondary LLM arbitration",
+        "Zero-tolerance reverse token grounding scanner against raw source text"
+      ]
+    }
+  },
+
+  "complete_raw_file_tree": {
+    "total_tracked_source_files": 48,
+    "root_directory": "/Users/mayankmitra/Documents/case-evidence-organizer",
+    "tree_structure": [
+      {
+        "path": "server.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 24832,
+        "line_count": 689,
+        "description": "Primary backend application server; WEBrick servlet with all REST API endpoints, auth middleware, static file router, and SSE broadcaster."
+      },
+      {
+        "path": "Gemfile",
+        "type": "file",
+        "language": "Ruby Bundler",
+        "size_bytes": 148,
+        "line_count": 8,
+        "description": "Ruby gem dependencies specification (sqlite3, webrick, json, rack)."
+      },
+      {
+        "path": "Dockerfile",
+        "type": "file",
+        "language": "Docker",
+        "size_bytes": 911,
+        "line_count": 36,
+        "description": "Multi-stage production container build for Render.com deploying Ruby core + Python processor."
+      },
+      {
+        "path": "docker-compose.yml",
+        "type": "file",
+        "language": "YAML",
+        "size_bytes": 697,
+        "line_count": 29,
+        "description": "Local container orchestration for Ruby backend, Python processor, and Node gateway."
+      },
+      {
+        "path": "render.yaml",
+        "type": "file",
+        "language": "YAML",
+        "size_bytes": 299,
+        "line_count": 14,
+        "description": "Render cloud deployment manifest with disk mount, autoDeploy, and environment variables."
+      },
+      {
+        "path": "start.sh",
+        "type": "file",
+        "language": "Shell (Bash)",
+        "size_bytes": 773,
+        "line_count": 28,
+        "description": "Local development startup script; boots Ruby WEBrick on port 8080 and verifies background services."
+      },
+      {
+        "path": "start-cloud.sh",
+        "type": "file",
+        "language": "Shell (Bash)",
+        "size_bytes": 844,
+        "line_count": 31,
+        "description": "Container entrypoint for production startup in Cloud/Render environments."
+      },
+      {
+        "path": "PROJECT_ARCHITECTURE_DOCUMENTATION.md",
+        "type": "file",
+        "language": "Markdown",
+        "size_bytes": 15822,
+        "line_count": 224,
+        "description": "Comprehensive engineering specification detailing the multi-model architecture, legal guardrails, and pipeline stages."
+      },
+      {
+        "path": "README.md",
+        "type": "file",
+        "language": "Markdown",
+        "size_bytes": 9828,
+        "line_count": 185,
+        "description": "Project overview, setup instructions, quick start guide, and features list."
+      },
+      {
+        "path": "db/database.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 28061,
+        "line_count": 854,
+        "description": "Database abstraction layer; SQLite3 connection pool with WAL mode, table creation, migrations, 9 indexes, and batch query methods."
+      },
+      {
+        "path": "db/seed_data.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 28672,
+        "line_count": 420,
+        "description": "Initial legal seed data for testing (Apex v. Delhi Metro EPC dispute, Grover v. Mehta NI Act Section 138)."
+      },
+      {
+        "path": "services/auth_service.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 10240,
+        "line_count": 312,
+        "description": "Court-grade authentication engine; PBKDF2-HMAC-SHA256 password hashing (25k iterations), bearer token sessions, starter case provisioning."
+      },
+      {
+        "path": "services/aggregation_service.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 10240,
+        "line_count": 285,
+        "description": "Synthesizes individual document extractions into a unified master chronology, narrative facts, and version diff logs."
+      },
+      {
+        "path": "services/certificate_service.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 5939,
+        "line_count": 165,
+        "description": "Generates formal statutory affidavits under Section 65B Indian Evidence Act 1872 and Section 63 Bharatiya Sakshya Adhiniyam 2023."
+      },
+      {
+        "path": "services/gemini_service.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 29696,
+        "line_count": 640,
+        "description": "Direct Ruby integration to Google Gemini 2.0 Flash REST API for structured legal JSON extraction and token tracking."
+      },
+      {
+        "path": "services/storage_service.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 3379,
+        "line_count": 98,
+        "description": "Disk storage abstraction with SHA-256 deduplication cache; prevents re-processing identical evidence files."
+      },
+      {
+        "path": "services/transcription_service.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 12288,
+        "line_count": 310,
+        "description": "Ruby dispatcher for Speech-to-Text requests; converts raw transcripts into diarized speaker turns with clickable seek times."
+      },
+      {
+        "path": "services/media_chunker.rb",
+        "type": "file",
+        "language": "Ruby",
+        "size_bytes": 2969,
+        "line_count": 82,
+        "description": "Segments large multimedia files (>100MB) into discrete temporal chunks for parallel transcription."
+      },
+      {
+        "path": "api/server.ts",
+        "type": "file",
+        "language": "TypeScript",
+        "size_bytes": 2123,
+        "line_count": 66,
+        "description": "Node.js Express edge gateway configuring Multer for 4GB streaming uploads and proxying to Python processor."
+      },
+      {
+        "path": "api/package.json",
+        "type": "file",
+        "language": "JSON",
+        "size_bytes": 609,
+        "line_count": 25,
+        "description": "Node gateway package definitions (express, multer, cors, axios, form-data, typescript)."
+      },
+      {
+        "path": "api/tsconfig.json",
+        "type": "file",
+        "language": "JSON",
+        "size_bytes": 1126,
+        "line_count": 42,
+        "description": "TypeScript compiler options for the edge gateway."
+      },
+      {
+        "path": "processor/main.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 4913,
+        "line_count": 124,
+        "description": "FastAPI AI processor application; implements POST /api/v1/ingest with background task pipeline execution."
+      },
+      {
+        "path": "processor/schemas.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 1638,
+        "line_count": 52,
+        "description": "Pydantic schema definitions: EvidenceObject, EvidenceType, SourceRef, ExtractionResult, DisputeFlag."
+      },
+      {
+        "path": "processor/orchestrator.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 3891,
+        "line_count": 115,
+        "description": "MultiModelOrchestrator; manages Gemini Flash Tier 1 pass and conditional Cascading Early-Exit or Tier 2 fanout."
+      },
+      {
+        "path": "processor/collation.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 2969,
+        "line_count": 92,
+        "description": "CollationEngine; mathematical majority voting and normalization of currencies/dates without secondary LLM arbitration."
+      },
+      {
+        "path": "processor/validator.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 3379,
+        "line_count": 108,
+        "description": "EvidenceValidator; deterministic reverse token grounding scanner verifying claims against raw document strings."
+      },
+      {
+        "path": "processor/parallel_validator.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 2355,
+        "line_count": 74,
+        "description": "Concurrent multi-document validation engine for large case bundles."
+      },
+      {
+        "path": "processor/decision.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 1843,
+        "line_count": 58,
+        "description": "Complexity and dispute classifier deciding whether to escalate an extraction to multi-model fanout."
+      },
+      {
+        "path": "processor/transcription.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 6041,
+        "line_count": 162,
+        "description": "SpeechToTextService; ASR pipeline with speaker diarization and timestamp extraction executed before LLM processing."
+      },
+      {
+        "path": "processor/database.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 1843,
+        "line_count": 54,
+        "description": "SQLite connection utility for reading/writing evidence status directly from Python workers."
+      },
+      {
+        "path": "processor/celery_app.py",
+        "type": "file",
+        "language": "Python",
+        "size_bytes": 1331,
+        "line_count": 42,
+        "description": "Celery asynchronous task broker configuration for heavy background document processing."
+      },
+      {
+        "path": "processor/requirements.txt",
+        "type": "file",
+        "language": "Text",
+        "size_bytes": 114,
+        "line_count": 8,
+        "description": "Python dependencies (fastapi, uvicorn, pydantic, python-multipart, celery, requests, aiohttp)."
+      },
+      {
+        "path": "public/index.html",
+        "type": "file",
+        "language": "HTML5",
+        "size_bytes": 12288,
+        "line_count": 275,
+        "description": "Single-page application container loading Tailwind CDN, Google Fonts (Cinzel, Inter), Lucide icons, and 12 component modules."
+      },
+      {
+        "path": "public/styles.css",
+        "type": "file",
+        "language": "CSS",
+        "size_bytes": 5017,
+        "line_count": 185,
+        "description": "Custom CSS rules, scrollbar styling, court print styles, and dark charcoal theme utilities."
+      },
+      {
+        "path": "public/app.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 35840,
+        "line_count": 919,
+        "description": "Main client state manager; App object, optimistic UI router, SSE event listener, and API communications."
+      },
+      {
+        "path": "public/components/auth_modal.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 12288,
+        "line_count": 236,
+        "description": "Sign In and Sign Up modal component with live password strength scoring and court chamber styling."
+      },
+      {
+        "path": "public/components/landing_page.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 11264,
+        "line_count": 210,
+        "description": "Public welcome view; Hindi headline ('Saboot bikhre hue...'), engraved judicial backdrop, compliance trust strip, 6 practice cards."
+      },
+      {
+        "path": "public/components/dashboard.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 15360,
+        "line_count": 340,
+        "description": "Authenticated advocate dashboard view; chamber overview, recent case dossiers, storage quota meter, quick action buttons."
+      },
+      {
+        "path": "public/components/new_case_view.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 11264,
+        "line_count": 240,
+        "description": "Case intake dossier creation form with multi-file drag-and-drop uploader and tier selection."
+      },
+      {
+        "path": "public/components/evidence_manager.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 19456,
+        "line_count": 420,
+        "description": "Evidence grid view; displays file type icons, SHA-256 cryptographic hashes, processing status, and transcript badges."
+      },
+      {
+        "path": "public/components/summary_view.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 11264,
+        "line_count": 280,
+        "description": "Master court brief synthesis view; facts narrative, cause of action analysis, parties directory, and 3-year limitation clock."
+      },
+      {
+        "path": "public/components/timeline_view.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 17408,
+        "line_count": 380,
+        "description": "Chronological evidence timeline with reverse token grounding verification badges (Grounded vs Drift) and source links."
+      },
+      {
+        "path": "public/components/diff_inspector.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 5427,
+        "line_count": 135,
+        "description": "Side-by-side version comparison inspector tracking how newly uploaded evidence shifts case facts and causes of action."
+      },
+      {
+        "path": "public/components/export_modal.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 14336,
+        "line_count": 310,
+        "description": "Export bundle generator; produces Court Submission Bundles and formal Section 65B / Section 63 statutory certificates."
+      },
+      {
+        "path": "public/components/source_viewer_modal.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 14336,
+        "line_count": 320,
+        "description": "Document and multimedia preview modal; synchronized audio/video player with clickable transcript timestamps."
+      },
+      {
+        "path": "public/components/case_setup_modal.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 8294,
+        "line_count": 195,
+        "description": "Modal for editing case metadata (court name, suit number, parties, dispute objective, hearing dates)."
+      },
+      {
+        "path": "public/components/clients_view.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 3481,
+        "line_count": 85,
+        "description": "Directory of litigation clients and opposing parties."
+      },
+      {
+        "path": "public/components/settings_view.js",
+        "type": "file",
+        "language": "JavaScript (ES6+)",
+        "size_bytes": 7680,
+        "line_count": 175,
+        "description": "Advocate chamber configuration, API key setup, model preference toggles, and storage management."
+      },
+      {
+        "path": "frontend/src/components/Hero.tsx",
+        "type": "file",
+        "language": "TypeScript / React",
+        "size_bytes": 2355,
+        "line_count": 58,
+        "description": "Modern React Hero component mirror matching the landing_page.js layout with gold curves and Hindi title."
+      },
+      {
+        "path": "scratch/test_advanced_features.rb",
+        "type": "file",
+        "language": "Ruby Test",
+        "size_bytes": 2355,
+        "line_count": 68,
+        "description": "Automated verification script validating Section 65B certificate generation and reverse token grounding logic."
+      },
+      {
+        "path": "scratch/test_performance_optimization.rb",
+        "type": "file",
+        "language": "Ruby Test",
+        "size_bytes": 1536,
+        "line_count": 48,
+        "description": "Automated verification script validating deduplication hash cache hits (0ms latency, 0 tokens)."
+      },
+      {
+        "path": "scratch/test_transcription.rb",
+        "type": "file",
+        "language": "Ruby Test",
+        "size_bytes": 2355,
+        "line_count": 65,
+        "description": "Automated verification script for audio/video transcription segmentation and diarization."
+      }
+    ]
+  },
+
+  "database_schema_specification": {
+    "engine": "SQLite3 with Write-Ahead Logging (WAL)",
+    "file_path": "case_organizer.db",
+    "tables_count": 12,
+    "tables": [
+      {
+        "table_name": "users",
+        "purpose": "Advocate accounts and credentials storage",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "first_name", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "last_name", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "email", "type": "TEXT", "constraints": "UNIQUE NOT NULL"},
+          {"name": "password_hash", "type": "TEXT", "constraints": "NOT NULL (PBKDF2-HMAC-SHA256)"},
+          {"name": "salt", "type": "TEXT", "constraints": "NOT NULL (16-byte hex)"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL (ISO 8601)"},
+          {"name": "updated_at", "type": "TEXT", "constraints": "NOT NULL (ISO 8601)"}
+        ],
+        "indexes": ["idx_users_email (UNIQUE)"]
+      },
+      {
+        "table_name": "user_sessions",
+        "purpose": "Bearer token sessions for authenticated API requests",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "user_id", "type": "TEXT", "constraints": "NOT NULL, FK -> users(id) ON DELETE CASCADE"},
+          {"name": "token", "type": "TEXT", "constraints": "UNIQUE NOT NULL (32-byte hex)"},
+          {"name": "expires_at", "type": "TEXT", "constraints": "NOT NULL (ISO 8601, 30-day lifetime)"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL (ISO 8601)"}
+        ],
+        "indexes": ["idx_user_sessions_token", "idx_user_sessions_user_id"]
+      },
+      {
+        "table_name": "cases",
+        "purpose": "Litigation dossiers representing distinct court matters",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "user_id", "type": "TEXT", "constraints": "FK -> users(id) ON DELETE CASCADE (Data Isolation)"},
+          {"name": "name", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "case_number", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "court_name", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "objective", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "parties_info", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "hearing_date", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "tier", "type": "TEXT", "constraints": "DEFAULT 'pro'"},
+          {"name": "max_storage_bytes", "type": "INTEGER", "constraints": "DEFAULT 4294967296 (4GB)"},
+          {"name": "max_files", "type": "INTEGER", "constraints": "DEFAULT 100"},
+          {"name": "has_unread_changes", "type": "INTEGER", "constraints": "DEFAULT 0"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "updated_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": ["idx_cases_user_id"]
+      },
+      {
+        "table_name": "evidence_files",
+        "purpose": "Uploaded documentary, digital, audio, and video exhibits",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "case_id", "type": "TEXT", "constraints": "NOT NULL, FK -> cases(id) ON DELETE CASCADE"},
+          {"name": "filename", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "original_name", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "file_type", "type": "TEXT", "constraints": "NOT NULL (PDF, IMAGE, AUDIO, VIDEO, CHAT)"},
+          {"name": "file_size", "type": "INTEGER", "constraints": "NOT NULL (Bytes)"},
+          {"name": "storage_path", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "status", "type": "TEXT", "constraints": "DEFAULT 'Queued' (Queued, Processing, Complete, Failed)"},
+          {"name": "progress", "type": "INTEGER", "constraints": "DEFAULT 0"},
+          {"name": "error_message", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "is_critical_evidence", "type": "INTEGER", "constraints": "DEFAULT 0"},
+          {"name": "uploaded_at", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "processed_at", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "transcript", "type": "TEXT", "constraints": "NULLABLE (JSON string of ASR dialogue turns)"}
+        ],
+        "indexes": ["idx_evidence_files_case_id"]
+      },
+      {
+        "table_name": "file_chunks",
+        "purpose": "Sub-segments of large files for chunked processing",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "file_id", "type": "TEXT", "constraints": "NOT NULL, FK -> evidence_files(id) ON DELETE CASCADE"},
+          {"name": "chunk_index", "type": "INTEGER", "constraints": "NOT NULL"},
+          {"name": "segment_title", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "segment_start", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "segment_end", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "storage_path", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "transcript_text", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "status", "type": "TEXT", "constraints": "DEFAULT 'Queued'"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": []
+      },
+      {
+        "table_name": "extractions",
+        "purpose": "Extracted legal facts and entities per individual evidence file",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "file_id", "type": "TEXT", "constraints": "NOT NULL, FK -> evidence_files(id) ON DELETE CASCADE"},
+          {"name": "case_id", "type": "TEXT", "constraints": "NOT NULL, FK -> cases(id) ON DELETE CASCADE"},
+          {"name": "file_summary", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "parties_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "jurisdiction_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "chronology_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "facts_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "cause_of_action_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "people_entities_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "ambiguities_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "raw_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": ["idx_extractions_case_id", "idx_extractions_file_id"]
+      },
+      {
+        "table_name": "master_summaries",
+        "purpose": "Synthesized case-level brief across all uploaded exhibits",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "case_id", "type": "TEXT", "constraints": "NOT NULL, FK -> cases(id) ON DELETE CASCADE"},
+          {"name": "version", "type": "INTEGER", "constraints": "NOT NULL DEFAULT 1"},
+          {"name": "parties_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "jurisdiction_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "chronology_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "facts_narrative", "type": "TEXT", "constraints": "TEXT"},
+          {"name": "cause_of_action_text", "type": "TEXT", "constraints": "TEXT"},
+          {"name": "limitation_json", "type": "TEXT", "constraints": "JSON (Earliest default, deadline, days remaining)"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": ["idx_master_summaries_case_id"]
+      },
+      {
+        "table_name": "diff_logs",
+        "purpose": "Tracks the incremental shift in legal posture when new evidence is added",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "case_id", "type": "TEXT", "constraints": "NOT NULL, FK -> cases(id) ON DELETE CASCADE"},
+          {"name": "file_id", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "summary_version", "type": "INTEGER", "constraints": "NOT NULL"},
+          {"name": "file_name", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "added_chronology_json", "type": "TEXT", "constraints": "JSON"},
+          {"name": "modified_facts", "type": "TEXT", "constraints": "TEXT"},
+          {"name": "shift_in_cause_of_action", "type": "TEXT", "constraints": "TEXT"},
+          {"name": "diff_summary", "type": "TEXT", "constraints": "TEXT"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": ["idx_diff_logs_case_id"]
+      },
+      {
+        "table_name": "notifications",
+        "purpose": "Chamber alerts for completed processing, token drift, and statutory deadlines",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "case_id", "type": "TEXT", "constraints": "NOT NULL, FK -> cases(id) ON DELETE CASCADE"},
+          {"name": "title", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "message", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "type", "type": "TEXT", "constraints": "DEFAULT 'info' (info, success, warning, diff)"},
+          {"name": "is_read", "type": "INTEGER", "constraints": "DEFAULT 0"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": ["idx_notifications_case_id"]
+      },
+      {
+        "table_name": "system_settings",
+        "purpose": "Key-value configuration store for chamber preferences",
+        "columns": [
+          {"name": "key", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "value", "type": "TEXT", "constraints": "NULLABLE"}
+        ],
+        "indexes": []
+      },
+      {
+        "table_name": "extraction_cache",
+        "purpose": "Deduplication hash index providing instant 0ms replays for identical files",
+        "columns": [
+          {"name": "sha256", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "file_name", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "file_size", "type": "INTEGER", "constraints": "NULLABLE"},
+          {"name": "extraction_json", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "tokens_saved", "type": "INTEGER", "constraints": "DEFAULT 4500"},
+          {"name": "latency_ms", "type": "INTEGER", "constraints": "DEFAULT 12"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": []
+      },
+      {
+        "table_name": "performance_metrics",
+        "purpose": "Telemetry log tracking token consumption, latency, and monetary savings",
+        "columns": [
+          {"name": "id", "type": "TEXT", "constraints": "PRIMARY KEY"},
+          {"name": "file_id", "type": "TEXT", "constraints": "NULLABLE"},
+          {"name": "operation", "type": "TEXT", "constraints": "NOT NULL"},
+          {"name": "tokens_used", "type": "INTEGER", "constraints": "DEFAULT 0"},
+          {"name": "tokens_saved", "type": "INTEGER", "constraints": "DEFAULT 0"},
+          {"name": "cost_saved_usd", "type": "REAL", "constraints": "DEFAULT 0.0"},
+          {"name": "latency_ms", "type": "INTEGER", "constraints": "DEFAULT 0"},
+          {"name": "created_at", "type": "TEXT", "constraints": "NOT NULL"}
+        ],
+        "indexes": []
+      }
+    ]
+  },
+
+  "api_endpoint_directory": {
+    "ruby_core_backend": {
+      "base_url": "http://localhost:8080",
+      "endpoints": [
+        {"method": "POST", "path": "/api/auth/signup", "auth_required": false, "description": "Create advocate user with PBKDF2 hashing, provision session, and seed starter case."},
+        {"method": "POST", "path": "/api/auth/signin", "auth_required": false, "description": "Authenticate advocate credentials and return 30-day session token."},
+        {"method": "POST", "path": "/api/auth/signout", "auth_required": true, "description": "Invalidate current session token in user_sessions table."},
+        {"method": "GET", "path": "/api/auth/me", "auth_required": true, "description": "Fetch authenticated advocate profile (name, email, chamber tier)."},
+        {"method": "POST", "path": "/api/auth/forgot-password", "auth_required": false, "description": "Reset password initiation endpoint."},
+        {"method": "GET", "path": "/api/cases", "auth_required": true, "description": "List all litigation dossiers owned by the authenticated advocate (batch query, no N+1)."},
+        {"method": "POST", "path": "/api/cases", "auth_required": true, "description": "Create a new case dossier with title, court name, and case number."},
+        {"method": "GET", "path": "/api/cases/:id", "auth_required": true, "description": "Fetch detailed case dossier including files, summary, and limitation status."},
+        {"method": "PUT", "path": "/api/cases/:id", "auth_required": true, "description": "Update case metadata (hearing dates, parties, objectives)."},
+        {"method": "DELETE", "path": "/api/cases/:id", "auth_required": true, "description": "Delete case dossier and cascade-remove all associated files and extractions."},
+        {"method": "POST", "path": "/api/cases/:id/documents", "auth_required": true, "description": "Multipart file upload endpoint; stores file, calculates SHA-256, and enqueues AI pipeline."},
+        {"method": "GET", "path": "/api/cases/:id/documents/:doc_id", "auth_required": true, "description": "Retrieve document extraction results, transcript, and SHA-256 hash."},
+        {"method": "GET", "path": "/api/cases/:id/summary", "auth_required": true, "description": "Fetch latest Master Summary version with chronology and limitation clock."},
+        {"method": "GET", "path": "/api/cases/:id/diff", "auth_required": true, "description": "Fetch version diff log showing impact of latest evidence additions."},
+        {"method": "GET", "path": "/api/cases/:id/export", "auth_required": true, "description": "Generate formatted printable Court Submission Bundle."},
+        {"method": "GET", "path": "/api/cases/:id/certificate", "auth_required": true, "description": "Generate formal Section 65B (IEA) / Section 63 (BSA) statutory electronic certificate."},
+        {"method": "GET", "path": "/api/events/:case_id", "auth_required": false, "description": "Server-Sent Events (SSE) stream broadcasting real-time ingestion progress."},
+        {"method": "GET", "path": "/api/metrics", "auth_required": true, "description": "Retrieve chamber telemetry on tokens saved, cache hits, and latency improvements."}
+      ]
+    },
+    "node_streaming_gateway": {
+      "base_url": "http://localhost:8080",
+      "endpoints": [
+        {"method": "POST", "path": "/api/upload", "auth_required": false, "description": "Streaming multipart file receiver supporting up to 4GB files; proxies to Python processor."},
+        {"method": "GET", "path": "/api/progress/:evidenceId", "auth_required": false, "description": "SSE progress heartbeat stream for streaming uploads."}
+      ]
+    },
+    "python_fastapi_processor": {
+      "base_url": "http://localhost:8000",
+      "endpoints": [
+        {"method": "POST", "path": "/api/v1/ingest", "auth_required": false, "description": "Accepts evidence upload, executes ASR transcription if audio/video, and triggers multi-model extraction in background."}
+      ]
+    }
+  },
+
+  "ai_pipeline_mechanics": {
+    "stage_1_asr_pre_processing": {
+      "trigger": "File type is AUDIO or VIDEO",
+      "rationale": "Audio/video cannot be reliably passed to text-based extraction without high-fidelity speaker diarization and microsecond timestamping.",
+      "output": "Diarized dialogue turns with speaker labels and start/end time markers bound to HTML5 seek events."
+    },
+    "stage_2_tier_1_gemini_extraction": {
+      "engine": "Google Gemini 2.0 Flash",
+      "purpose": "High-speed OCR, multimodal layout parsing, and initial fact extraction.",
+      "cascading_early_exit": {
+        "condition": "Confidence >= 0.90 AND Complexity != 'Hard' AND Disputed == false",
+        "action": "Return Tier-1 extraction immediately, bypassing Tier-2 models.",
+        "cost_savings": "~65% token cost reduction, ~70% latency reduction."
+      }
+    },
+    "stage_3_tier_2_adversarial_fanout": {
+      "engine": "OpenAI GPT-4o + Anthropic Claude 3.5 Sonnet (concurrent via asyncio.gather)",
+      "trigger": "Confidence < 0.90 OR pecuniary figure conflict OR illegible seal/signature",
+      "purpose": "Extract conflicting clauses, counter-arguments, and hidden admissions."
+    },
+    "stage_4_mathematical_collation": {
+      "engine": "CollationEngine (processor/collation.py)",
+      "mechanism": "Strict deterministic consensus algorithm; normalization of currencies to float and dates to ISO-8601.",
+      "anti_hallucination_rule": "NO secondary LLM is ever used to arbitrate disagreements. Conflicts are flagged for human advocate review."
+    },
+    "stage_5_reverse_token_grounding": {
+      "engine": "EvidenceValidator (processor/validator.py)",
+      "mechanism": "Regex and substring scan asserting every monetary amount, date, and clause number in the output exists verbatim in the raw source document.",
+      "ui_indicators": {
+        "grounded": "🟢 Grounded (All extracted tokens matched against source file)",
+        "drift": "🔴 Unverified Token Drift (Pecuniary or date discrepancy flagged)"
+      }
+    }
+  },
+
+  "deployment_specifications": {
+    "cloud_host": "Render.com",
+    "service_type": "Web Service (Docker)",
+    "auto_deploy": true,
+    "ports": {
+      "internal_ruby": 8080,
+      "internal_python": 8000,
+      "public_facing": 8080
+    },
+    "disk_mount": {
+      "mount_path": "/app/uploads",
+      "size_gb": 10,
+      "purpose": "Persistent storage for case documents, evidence files, and SQLite database"
+    },
+    "environment_variables": {
+      "PORT": "8080",
+      "GEMINI_API_KEY": "Required for Google Gemini 2.0 Flash",
+      "OPENAI_API_KEY": "Optional for Tier 2 GPT-4o escalation",
+      "ANTHROPIC_API_KEY": "Optional for Tier 2 Claude 3.5 Sonnet escalation",
+      "DATABASE_URL": "sqlite3:/app/uploads/case_organizer.db",
+      "APP_ENV": "production"
+    }
+  }
+}

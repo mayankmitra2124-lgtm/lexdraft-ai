@@ -6,9 +6,6 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     build-essential \
     libsqlite3-dev \
     sqlite3 \
-    python3 \
-    python3-pip \
-    python3-venv \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -18,13 +15,11 @@ WORKDIR /app
 COPY Gemfile ./
 RUN bundle install
 
-# Install Python dependencies in a virtual environment
-COPY processor/requirements.txt ./processor/
-RUN python3 -m venv /app/processor/venv \
-    && /app/processor/venv/bin/pip install --no-cache-dir -r ./processor/requirements.txt
-
-# Copy application files
+# Copy application files (excluding archived/submodule items via .dockerignore)
 COPY . .
+
+# Ensure storage directories exist
+RUN mkdir -p uploads
 
 # Ensure startup scripts are executable
 RUN chmod +x start-cloud.sh start.sh
