@@ -83,8 +83,8 @@ const LandingPage = {
           <div class="max-w-6xl mx-auto space-y-12">
             
             <div class="text-center space-y-2">
-              <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white">Engineered for Indian Judicial Practice</h2>
-              <p class="text-xs text-slate-400 max-w-xl mx-auto">Every module is structured around procedural court admissibility, limitation periods, and electronic evidence standards.</p>
+              <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white">Built for Indian judicial practice</h2>
+              <p class="text-xs text-slate-400 max-w-xl mx-auto">Structured around procedural court admissibility, statutory limitation deadlines, and electronic evidence standards.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,64 +94,64 @@ const LandingPage = {
                 <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                   <i data-lucide="file-check-2" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-serif font-bold text-base text-white">Section 65B & 63 BSA Certificate Generator</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                  Computes SHA-256 cryptographic hashes for WhatsApp chats, PDFs, and recordings. Auto-generates court-ready electronic affidavits compliant with Supreme Court precedents.
+                <h3 class="font-serif font-bold text-base text-white">Section 65B & 63 BSA Certificates</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                  Generates court-ready electronic evidence certificates for WhatsApp chats, PDFs, and recordings — drafted to match Supreme Court precedent, ready to file with your petition.
                 </p>
               </div>
 
               <!-- Feature 2 -->
               <div class="p-6 rounded-2xl bg-[#13192B] border border-slate-800 hover:border-amber-500/40 transition space-y-3 shadow-lg">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                   <i data-lucide="mic" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-serif font-bold text-base text-white">Speech-to-Text with Click-to-Seek Player</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                  Automatic speech recognition with speaker diarization for audio and video calls. Click any timestamp in the transcript to jump immediately to the spoken verbal admission.
+                <h3 class="font-serif font-bold text-base text-white">Searchable Audio & Video Transcripts</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                  Every recorded call or video is transcribed with speakers identified. Click any line of the transcript to jump straight to that moment in the original recording.
                 </p>
               </div>
 
               <!-- Feature 3 -->
               <div class="p-6 rounded-2xl bg-[#13192B] border border-slate-800 hover:border-amber-500/40 transition space-y-3 shadow-lg">
                 <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                  <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                  <i data-lucide="shield-check" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-serif font-bold text-base text-white">Zero-Tolerance Reverse Grounding</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                  Deterministic token verification scans extracted figures (e.g. ₹40,00,000) and dates against the underlying source file. Flags unverified numbers with Token Drift warnings.
+                <h3 class="font-serif font-bold text-base text-white">Every Fact Verified Against Source</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                  Every figure and date the system extracts — a payment of ₹40,00,000, a disputed clause, a call date — is checked back against your original documents before it reaches your timeline. Anything unverified is flagged, never assumed.
                 </p>
               </div>
 
               <!-- Feature 4 -->
               <div class="p-6 rounded-2xl bg-[#13192B] border border-slate-800 hover:border-amber-500/40 transition space-y-3 shadow-lg">
-                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                   <i data-lucide="hourglass" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-serif font-bold text-base text-white">Statutory Limitation Clock</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                  Calculates 3-Year limitation windows under Schedule Article 55/113 of the Limitation Act, 1963 and Commercial Courts Act 2015. Live countdown of days remaining before limitation bar.
+                <h3 class="font-serif font-bold text-base text-white">Limitation Period Tracking</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                  A live countdown to the statutory limitation deadline for each matter, calculated under the Limitation Act, 1963 and the Commercial Courts Act, 2015 — so a filing window never closes unnoticed.
                 </p>
               </div>
 
               <!-- Feature 5 -->
               <div class="p-6 rounded-2xl bg-[#13192B] border border-slate-800 hover:border-amber-500/40 transition space-y-3 shadow-lg">
-                <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                   <i data-lucide="layers" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-serif font-bold text-base text-white">Cascading Early-Exit Multi-Model</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                  Tier-1 fast pass with Gemini 2.0 Flash early-exits when confidence is ≥ 0.90, cutting token costs by ~65%. Escalates to GPT-4o and Claude 3.5 Sonnet only for ambiguous documents.
+                <h3 class="font-serif font-bold text-base text-white">Built for Complex, High-Volume Matters</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                  Handles dense, high-volume case files — contracts, correspondence, financial records — without slowing down or losing accuracy on the details that matter most.
                 </p>
               </div>
 
               <!-- Feature 6 -->
               <div class="p-6 rounded-2xl bg-[#13192B] border border-slate-800 hover:border-amber-500/40 transition space-y-3 shadow-lg">
-                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                  <i data-lucide="printer" class="w-5 h-5"></i>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                  <i data-lucide="file-text" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-serif font-bold text-base text-white">Court Brief Exhibit Indexing</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                  Export court-ready petitions with automatic Master Exhibit Indexing (Annexure P-1, P-2), running pagination, statutory limitation declarations, and affidavit attachments.
+                <h3 class="font-serif font-bold text-base text-white">Exhibit Indexing for Court Filing</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                  Exports petitions with exhibits numbered and paginated automatically, limitation declarations attached, and affidavits in place — ready to file, not just ready to read.
                 </p>
               </div>
 
@@ -162,13 +162,8 @@ const LandingPage = {
 
         <!-- Footer -->
         <footer class="py-8 px-6 bg-[#0A0E1A] border-t border-slate-850 text-center text-xs text-slate-500 font-mono">
-          <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p>© ${new Date().getFullYear()} LexDraft AI • Indian Legal Tech Evidence Ingestion & Synthesis Engine</p>
-            <div class="flex items-center space-x-4">
-              <span class="hover:text-slate-400 cursor-pointer" onclick="App.openAuthModal('signin')">Chamber Sign In</span>
-              <span>•</span>
-              <span class="hover:text-slate-400 cursor-pointer" onclick="App.openAuthModal('signup')">Create Account</span>
-            </div>
+          <div class="max-w-5xl mx-auto">
+            <p>© 2026 LexDraft AI — Evidence Intelligence for Indian Legal Practice</p>
           </div>
         </footer>
 
