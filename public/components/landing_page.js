@@ -2,24 +2,24 @@
 const LandingPage = {
   render() {
     return `
-      <div class="min-h-screen bg-[#0C0F17] text-slate-100 selection:bg-[#B98A46] selection:text-slate-950 font-sans flex flex-col">
+      <div class="min-h-screen bg-[#15171C] text-[#EDEAE3] selection:bg-[#B98A46] selection:text-[#15171C] font-sans flex flex-col">
         
         <!-- Navigation Bar -->
-        <header class="sticky top-0 z-40 bg-[#0C0F17]/90 backdrop-blur-md border-b border-slate-850/80 px-6 sm:px-10 py-4">
+        <header class="sticky top-0 z-40 bg-[#15171C]/90 backdrop-blur-md border-b border-white/5 px-6 sm:px-10 py-4">
           <div class="max-w-7xl mx-auto flex items-center justify-between">
             
             <!-- Brand Typography Logo -->
             <div class="flex flex-col cursor-pointer" onclick="App.navigate('landing')">
-              <span class="font-serif font-bold text-lg sm:text-xl tracking-[0.18em] text-[#C59B63] uppercase leading-none">LEXDRAFT AI</span>
-              <span class="text-[10px] text-slate-400 font-sans tracking-widest lowercase pt-1 font-normal">precision legal evidence</span>
+              <span class="font-serif font-bold text-lg sm:text-xl tracking-[0.18em] text-[#B98A46] uppercase leading-none">LEXDRAFT AI</span>
+              <span class="text-[10px] text-[#9CA3AF] font-sans tracking-widest lowercase pt-1 font-normal">precision legal evidence</span>
             </div>
 
             <!-- Nav Links & Auth CTAs -->
             <div class="flex items-center space-x-5 sm:space-x-6">
-              <button onclick="App.openAuthModal('signin')" class="text-xs font-semibold text-slate-300 hover:text-white transition">
+              <button onclick="App.openAuthModal('signin')" class="text-xs font-semibold text-[#9CA3AF] hover:text-[#EDEAE3] transition">
                 Log In
               </button>
-              <button onclick="App.openAuthModal('signup')" class="px-5 py-2 rounded-full bg-[#B98A46] hover:bg-[#C59B63] text-slate-950 font-bold text-xs hover:brightness-105 transition shadow-lg shadow-amber-950/30 flex items-center space-x-1.5">
+              <button onclick="App.openAuthModal('signup')" class="px-5 py-2 rounded-full bg-[#B98A46] hover:bg-[#c99a56] text-[#15171C] font-medium text-xs transition shadow-lg shadow-[#B98A46]/10 flex items-center space-x-1.5">
                 <span>Start Free Trial</span>
               </button>
             </div>
@@ -27,69 +27,63 @@ const LandingPage = {
           </div>
         </header>
 
-        <!-- Main Hero Section: Two-Column Split Layout -->
-        <section class="relative pt-8 sm:pt-12 pb-10 px-6 sm:px-10 overflow-hidden flex-1 flex flex-col justify-center">
-          <!-- Background Ambient Golden Glow behind Scales -->
-          <div class="absolute top-1/3 right-1/4 w-[500px] h-[400px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <!-- Hero Section -->
+        <section class="relative min-h-[85vh] bg-[#15171C] text-[#EDEAE3] flex flex-col justify-center items-center px-6 overflow-hidden">
+          <!-- Subtle Background Curves -->
+          <svg
+            class="absolute inset-0 w-full h-full pointer-events-none opacity-20"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1440 800"
+            fill="none"
+          >
+            <path
+              d="M-100,400 C300,200 600,600 1000,350 C1300,150 1500,450 1600,400"
+              stroke="#B98A46"
+              stroke-width="1.2"
+            />
+            <path
+              d="M-100,450 C350,260 650,620 1050,380 C1350,200 1480,480 1600,450"
+              stroke="#B98A46"
+              stroke-width="0.8"
+            />
+          </svg>
 
-          <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-            
-            <!-- Left Column: Copy & Primary CTA -->
-            <div class="lg:col-span-6 space-y-6 text-left">
-              <h1 class="font-serif text-4xl sm:text-5xl lg:text-[54px] font-normal text-white tracking-tight leading-[1.18]">
-                Saboot bikhre hue, par<br>
-                kahani ek honi chahiye.
-              </h1>
+          <!-- Hero Content -->
+          <div class="relative z-10 max-w-3xl text-center flex flex-col items-center py-12">
+            <h1 class="font-serif text-4xl sm:text-5xl md:text-6xl tracking-tight leading-tight text-[#EDEAE3]">
+              Saboot bikhre hue, <br />
+              <span class="italic font-normal text-[#B98A46]">
+                par kahani ek honi chahiye.
+              </span>
+            </h1>
 
-              <p class="text-base sm:text-lg text-slate-400 font-sans leading-relaxed max-w-lg font-normal">
-                Integrate dispersed data. Build your court-ready narrative.
-              </p>
+            <p class="mt-6 text-lg sm:text-xl text-[#9CA3AF] max-w-xl font-sans">
+              Integrate dispersed data. Build your court-ready narrative.
+            </p>
 
-              <div class="pt-2">
-                <button onclick="App.openAuthModal('signup')" class="px-8 py-3.5 rounded-full bg-[#B98A46] hover:bg-[#C59B63] text-slate-950 font-bold text-sm transition shadow-xl shadow-amber-950/40 hover:brightness-105 active:scale-[0.98] inline-flex items-center space-x-2">
-                  <span>Create Chronology</span>
-                </button>
-              </div>
-            </div>
+            <button onclick="App.openAuthModal('signup')" class="mt-8 px-8 py-3.5 rounded-full bg-[#B98A46] text-[#15171C] font-medium hover:bg-[#c99a56] transition-colors shadow-lg shadow-[#B98A46]/10">
+              Start Free Trial
+            </button>
 
-            <!-- Right Column: 3D Scales of Justice Illustration -->
-            <div class="lg:col-span-6 flex justify-center lg:justify-end relative">
-              <div class="relative w-full max-w-[500px]">
-                <img src="images/hero_scales.png" alt="LexDraft AI - Physical vs Digital Evidence Synthesis" class="w-full h-auto object-contain select-none drop-shadow-2xl">
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- Compliance & Evidence Standards Ribbon -->
-        <div class="w-full border-t border-b border-slate-800/80 bg-[#0E121E]/75 backdrop-blur-sm py-4 px-6">
-          <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs text-slate-400 font-sans">
-            <div class="flex items-center space-x-2.5">
-              <i data-lucide="file-text" class="w-4 h-4 text-slate-400 shrink-0"></i>
-              <span>Indian Evidence Act Section 65B / 2023 Compliant</span>
-            </div>
-            <span class="text-slate-700 hidden sm:inline">|</span>
-            <div class="flex items-center space-x-2.5">
-              <i data-lucide="lock" class="w-4 h-4 text-slate-400 shrink-0"></i>
+            <!-- Minimal Trust Strip -->
+            <div class="mt-20 flex flex-wrap justify-center items-center gap-x-8 gap-y-3 text-xs sm:text-sm text-[#9CA3AF]/80 border-t border-white/5 pt-8 font-sans">
+              <span>Indian Evidence Act Section 65B / BSA 2023 Compliant</span>
+              <span class="text-white/20">•</span>
               <span>Per-User Encrypted Data Isolation</span>
-            </div>
-            <span class="text-slate-700 hidden sm:inline">|</span>
-            <div class="flex items-center space-x-2.5">
-              <i data-lucide="cpu" class="w-4 h-4 text-slate-400 shrink-0"></i>
+              <span class="text-white/20">•</span>
               <span>Multi-Model AI Verification Against Source Documents</span>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- "Trusted By" Section Header -->
-        <div class="relative py-12 text-center overflow-hidden">
-          <h3 class="font-serif text-2xl sm:text-3xl font-bold text-[#C59B63] tracking-wide inline-block drop-shadow-[0_0_20px_rgba(197,155,99,0.35)]">
+        <div class="relative py-12 text-center overflow-hidden bg-[#15171C]">
+          <h3 class="font-serif text-2xl sm:text-3xl font-bold text-[#B98A46] tracking-wide inline-block drop-shadow-[0_0_20px_rgba(185,138,70,0.35)]">
             Trusted By
           </h3>
           <!-- Decorative 4-point star sparkle -->
           <div class="absolute right-8 sm:right-20 top-1/2 -translate-y-1/2 text-slate-600 opacity-60 pointer-events-none">
-            <svg class="w-7 h-7 fill-current text-[#C59B63]/60" viewBox="0 0 24 24">
+            <svg class="w-7 h-7 fill-current text-[#B98A46]/60" viewBox="0 0 24 24">
               <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z"/>
             </svg>
           </div>
