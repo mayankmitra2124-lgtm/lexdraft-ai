@@ -244,17 +244,68 @@ module Database
       );
     SQL
 
+    # High-Performance Query Indexes
+    db.execute("CREATE INDEX IF NOT EXISTS idx_cases_user_id ON cases(user_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_evidence_files_case_id ON evidence_files(case_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_master_summaries_case_id ON master_summaries(case_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_diff_logs_case_id ON diff_logs(case_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_notifications_case_id ON notifications(case_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_extractions_case_id ON extractions(case_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_extractions_file_id ON extractions(file_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id)")
+
     puts "Database initialized successfully at #{DB_PATH}"
   end
 
-  # Case Operations with Per-User Multi-Tenant Isolation
+  # Case Operations with Per-User Multi-Tenant Isolation (Optimized Batch Loading)
   def self.list_cases(user_id = nil)
     cases = if user_id
               query("SELECT * FROM cases WHERE user_id = ? ORDER BY updated_at DESC", [user_id.to_s])
             else
               query("SELECT * FROM cases ORDER BY updated_at DESC")
             end
-    cases.map { |c| enrich_case_summary(c) }
+    
+    return [] if cases.empty?
+
+    case_ids = cases.map { |c| c['id'] }
+    placeholders = case_ids.map { '?' }.join(',')
+    
+    files_stats = {}
+    query("SELECT case_id, status, file_size FROM evidence_files WHERE case_id IN (#{placeholders})", case_ids).each do |f|
+      cid = f['case_id']
+      files_stats[cid] ||= { total_files: 0, total_size: 0, pending: 0, completed: 0, failed: 0 }
+      files_stats[cid][:total_files] += 1
+      files_stats[cid][:total_size] += f['file_size'].to_i
+      files_stats[cid][:pending] += 1 if %w[Queued Processing].include?(f['status'])
+      files_stats[cid][:completed] += 1 if f['status'] == 'Complete'
+      files_stats[cid][:failed] += 1 if f['status'] == 'Failed'
+    end
+
+    summary_stats = {}
+    query("SELECT case_id, MAX(version) as max_version FROM master_summaries WHERE case_id IN (#{placeholders}) GROUP BY case_id", case_ids).each do |s|
+      summary_stats[s['case_id']] = s['max_version'].to_i
+    end
+
+    cases.each do |c|
+      cid = c['id']
+      stat = files_stats[cid] || { total_files: 0, total_size: 0, pending: 0, completed: 0, failed: 0 }
+      total_size = stat[:total_size]
+      
+      c['total_files'] = stat[:total_files]
+      c['total_size_bytes'] = total_size
+      c['total_size_formatted'] = format_bytes(total_size)
+      c['max_storage_formatted'] = format_bytes(c['max_storage_bytes'].to_i)
+      c['storage_usage_pct'] = c['max_storage_bytes'].to_i.positive? ? ((total_size.to_f / c['max_storage_bytes'].to_i) * 100).round(1) : 0
+      c['pending_files'] = stat[:pending]
+      c['completed_files'] = stat[:completed]
+      c['failed_files'] = stat[:failed]
+      c['summary_version'] = summary_stats[cid] || 0
+      c['has_summary'] = (summary_stats[cid] || 0) > 0
+      c['latest_diff'] = nil
+    end
+
+    cases
   end
 
   def self.get_case(id, user_id = nil)

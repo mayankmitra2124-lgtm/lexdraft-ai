@@ -79,12 +79,12 @@ const App = {
   },
 
   // ==========================================
-  // Router & Navigation
+  // Router & Navigation (Instant Optimistic UI)
   // ==========================================
   async navigate(route, param = null) {
     this.state.currentRoute = route;
 
-    // Update active highlight on sidebar items
+    // 1. Instant Active Highlight
     document.querySelectorAll('.nav-item').forEach(el => {
       if (el.getAttribute('data-route') === route) {
         el.className = 'nav-item flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition bg-accent/15 text-accent border-l-2 border-accent shadow-sm';
@@ -93,34 +93,59 @@ const App = {
       }
     });
 
+    // 2. Instant Optimistic Render
     if (route === 'dashboard') {
       this.closeSSE();
       this.state.activeCaseId = null;
-      await this.loadDashboardData();
       this.renderDashboard();
+      lucide.createIcons();
+      // Fresh background sync without blocking
+      this.loadDashboardData().then(() => {
+        if (this.state.currentRoute === 'dashboard') {
+          this.renderDashboard();
+          lucide.createIcons();
+        }
+      });
     } else if (route === 'new-case') {
       this.closeSSE();
       this.renderNewCase();
+      lucide.createIcons();
     } else if (route === 'cases-list') {
       this.closeSSE();
-      await this.loadDashboardData();
       this.renderCasesList();
+      lucide.createIcons();
+      this.loadDashboardData().then(() => {
+        if (this.state.currentRoute === 'cases-list') {
+          this.renderCasesList();
+          lucide.createIcons();
+        }
+      });
     } else if (route === 'case-detail' && param) {
       this.state.activeCaseId = param;
+      if (this.state.currentCase && this.state.currentCase.id === param) {
+        this.renderCaseDetailView();
+        lucide.createIcons();
+      } else {
+        const root = document.getElementById('app-root');
+        if (root) root.innerHTML = '<div class="p-12 text-center text-slate-400 font-serif animate-pulse">Loading matter details...</div>';
+      }
       await this.loadCaseData(param);
-      this.setupSSE(param);
-      this.renderCaseDetailView();
-
+      if (this.state.activeCaseId === param) {
+        this.setupSSE(param);
+        this.renderCaseDetailView();
+        lucide.createIcons();
+      }
     } else if (route === 'clients') {
       this.closeSSE();
       this.renderClients();
+      lucide.createIcons();
     } else if (route === 'settings') {
       this.closeSSE();
       this.renderSettings();
+      lucide.createIcons();
     }
 
-    lucide.createIcons();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0 });
   },
 
   async openCase(caseId) {
