@@ -10,6 +10,9 @@ require 'uri'
 require 'time'
 require 'cgi'
 require 'thread'
+require 'stringio'
+require 'securerandom'
+require 'digest'
 
 require_relative 'db/database'
 require_relative 'db/seed_data'
@@ -446,7 +449,7 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
         files = Database.list_files(case_id)
         json_response(res, files)
 
-      elsif method == 'POST' && path =~ %r{^/api/cases/([^/]+)/evidence$}
+      elsif method == 'POST' && (path =~ %r{^/api/cases/([^/]+)/evidence$} || path =~ %r{^/api/cases/([^/]+)/upload$})
         case_id = $1
         unless Database.verify_case_access(case_id, current_user)
           json_response(res, { 'error' => 'Forbidden: You cannot upload evidence to this case.' }, 403)
