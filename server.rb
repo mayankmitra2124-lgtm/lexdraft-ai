@@ -256,6 +256,74 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
       return
     end
 
+    if method == 'GET' && path == '/api/system/storage-diagnostic'
+      current_user = extract_current_user(req)
+      unless current_user
+        json_response(res, { 'error' => 'Unauthorized. Authentication required.' }, 401)
+        return
+      end
+
+      adapter = StorageService.adapter
+      target_key = (req.query && req.query['key']) || "tenants/tnt_1788715913_2320/cases/case_usr_1788715913_2320_starter/evidence/ef_1788716743_27383ed0/d47dd3309de15af4de971f68e4795deb6fd34f1547771c88e19745d567c5930d"
+      local_path = (req.query && req.query['path']) || "/app/uploads/case_usr_1788715913_2320_starter/1788716743_016e92b1_live_evidence_affidavit.txt"
+
+      env_keys_present = %w[
+        STORAGE_BACKEND STORAGE_ADAPTER
+        R2_BUCKET S3_BUCKET S3_BUCKET_NAME
+        R2_ENDPOINT S3_ENDPOINT AWS_ENDPOINT_URL
+        R2_ACCESS_KEY_ID AWS_ACCESS_KEY_ID
+        R2_SECRET_ACCESS_KEY AWS_SECRET_ACCESS_KEY
+        R2_REGION S3_REGION AWS_REGION
+        S3_FORCE_PATH_STYLE S3_SERVER_SIDE_ENCRYPTION
+      ].select { |k| ENV.key?(k) && !ENV[k].to_s.empty? }
+
+      is_s3 = adapter.is_a?(StorageService::S3StorageAdapter)
+      s3_avail = adapter.respond_to?(:s3_available?) ? adapter.s3_available? : false
+      bucket_name = adapter.respond_to?(:bucket) ? adapter.bucket : nil
+      endpoint_val = adapter.respond_to?(:endpoint) ? adapter.endpoint : nil
+
+      obj_exists = adapter.object_exists?(key: target_key) rescue false
+      obj_size = adapter.object_size(key: target_key) rescue 0
+
+      r2_head_meta = nil
+      r2_head_error = nil
+      if is_s3 && adapter.client
+        begin
+          h = adapter.client.head_object(bucket: bucket_name, key: target_key)
+          r2_head_meta = {
+            'content_length' => h.content_length,
+            'content_type' => h.content_type,
+            'last_modified' => h.last_modified&.iso8601,
+            'etag' => h.etag,
+            'metadata' => h.metadata.to_h
+          }
+        rescue => e
+          r2_head_error = "#{e.class}: #{e.message}"
+        end
+      end
+
+      local_exists = File.file?(local_path)
+      local_size = local_exists ? File.size(local_path) : 0
+
+      json_response(res, {
+        'adapter_class' => adapter.class.name,
+        'is_s3_adapter' => is_s3,
+        's3_available' => s3_avail,
+        'bucket' => bucket_name,
+        'endpoint_host' => endpoint_val ? (URI(endpoint_val).host rescue 'invalid_uri') : nil,
+        'env_keys_present' => env_keys_present,
+        'target_key' => target_key,
+        'adapter_object_exists' => obj_exists,
+        'adapter_object_size' => obj_size,
+        'r2_head_metadata' => r2_head_meta,
+        'r2_head_error' => r2_head_error,
+        'local_file_path' => local_path,
+        'local_file_exists' => local_exists,
+        'local_file_size' => local_size
+      })
+      return
+    end
+
 
     # ==========================================
     # Public Authentication Endpoints
@@ -469,20 +537,27 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
           json_response(res, { 'error' => 'Evidence file not found.' }, 404)
           return
         end
-        uploads_root = File.expand_path('../uploads', __FILE__)
-        target_file = File.expand_path(file_rec['storage_path'])
-        unless target_file.start_with?(uploads_root + File::SEPARATOR) && File.file?(target_file)
-          json_response(res, { 'error' => 'Evidence file not found or inaccessible.' }, 404)
+        data = nil
+        if file_rec['storage_key']
+          data = StorageService.adapter.get_object(key: file_rec['storage_key']) rescue nil
+        end
+        if data.nil? && file_rec['storage_path'] && File.file?(file_rec['storage_path'])
+          data = File.binread(file_rec['storage_path']) rescue nil
+        end
+
+        if data.nil?
+          json_response(res, { 'error' => 'Evidence file not found in storage.' }, 404)
           return
         end
-        mime = mime_for(target_file)
+
+        mime = mime_for(file_rec['original_name'] || file_rec['storage_path'])
         res.status = 200
         res['Content-Type'] = mime
-        res['Content-Length'] = File.size(target_file).to_s
+        res['Content-Length'] = data.bytesize.to_s
         res['Cache-Control'] = 'private, no-cache, no-store, must-revalidate'
         safe_name = file_rec['original_name'].to_s.gsub(/["\r\n]/, '_')
         res['Content-Disposition'] = "attachment; filename=\"#{safe_name}\""
-        res.body = File.binread(target_file)
+        res.body = data
 
         Database.log_audit_event(
           tenant_id: current_user['tenant_id'],
@@ -892,17 +967,25 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
       return
     end
 
-    unless File.file?(target_file)
-      json_response(res, { 'error' => 'Evidence file not found.' }, 404)
-      return
+    file_record = Database.find_file_by_name(case_id, File.basename(rel_filename))
+
+    data = nil
+    if file_record && file_record['storage_key']
+      data = StorageService.adapter.get_object(key: file_record['storage_key']) rescue nil
+    end
+    if data.nil? && File.file?(target_file)
+      data = File.binread(target_file) rescue nil
     end
 
-    file_record = Database.find_file_by_name(case_id, File.basename(rel_filename))
+    if data.nil?
+      json_response(res, { 'error' => 'Evidence file not found in storage.' }, 404)
+      return
+    end
 
     mime = mime_for(target_file)
     res.status = 200
     res['Content-Type'] = mime
-    res['Content-Length'] = File.size(target_file).to_s
+    res['Content-Length'] = data.bytesize.to_s
     res['Cache-Control'] = 'private, no-cache, no-store, must-revalidate'
     download_name = file_record ? file_record['original_name'] : File.basename(rel_filename)
     safe_name = download_name.to_s.gsub(/["\r\n]/, '_')
@@ -911,7 +994,7 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
     # browser at this route's origin allows stored XSS with same-origin
     # access to cookies and localStorage. Always force a download.
     res['Content-Disposition'] = "attachment; filename=\"#{safe_name}\""
-    res.body = File.binread(target_file)
+    res.body = data
 
     Database.log_audit_event(
       tenant_id: current_user['tenant_id'],

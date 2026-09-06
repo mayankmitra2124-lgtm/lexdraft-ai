@@ -31,7 +31,8 @@ module StorageService
         client_opts[:force_path_style] = @force_path_style
         @client = Aws::S3::Client.new(client_opts)
         @s3_resource = Aws::S3::Resource.new(client: @client)
-      rescue LoadError
+      rescue => e
+        puts "[S3StorageAdapter] Init failed: #{e.class} - #{e.message}"
         @client = nil
         @s3_resource = nil
       end
@@ -65,7 +66,15 @@ module StorageService
           put_params[:server_side_encryption] = 'AES256'
         end
 
-        @client.put_object(put_params)
+        begin
+          @client.put_object(put_params)
+          puts "[S3StorageAdapter] Successfully stored #{key} (#{body.bytesize} bytes) in bucket '#{@bucket}'"
+        rescue => e
+          puts "[S3StorageAdapter Error] Failed to put_object #{key} to #{@bucket}: #{e.class} - #{e.message}"
+          raise e
+        end
+      else
+        puts "[S3StorageAdapter Warning] s3_available? is false; #{key} not uploaded to R2"
       end
 
       {

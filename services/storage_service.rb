@@ -11,13 +11,28 @@ module StorageService
 
   def self.adapter
     @adapter ||= begin
-      use_s3 = (ENV['STORAGE_BACKEND'] == 's3' || ENV['STORAGE_ADAPTER'] == 's3')
-      has_creds = (ENV['AWS_ACCESS_KEY_ID'] || ENV['R2_ACCESS_KEY_ID'])
+      use_s3 = (
+        ENV['STORAGE_BACKEND'] == 's3' ||
+        ENV['STORAGE_ADAPTER'] == 's3' ||
+        !ENV['R2_BUCKET'].to_s.empty? ||
+        !ENV['S3_BUCKET'].to_s.empty? ||
+        !ENV['R2_ENDPOINT'].to_s.empty? ||
+        !ENV['S3_ENDPOINT'].to_s.empty?
+      )
+      has_creds = (!ENV['AWS_ACCESS_KEY_ID'].to_s.empty? || !ENV['R2_ACCESS_KEY_ID'].to_s.empty?)
       if use_s3 && has_creds
         begin
           require_relative 's3_storage_adapter'
-          S3StorageAdapter.new
-        rescue LoadError
+          s3_adapter = S3StorageAdapter.new
+          if s3_adapter.s3_available?
+            puts "[StorageService] Activated S3StorageAdapter (Bucket: #{s3_adapter.bucket}, Region: #{s3_adapter.region})"
+            s3_adapter
+          else
+            puts "[StorageService] S3StorageAdapter not available, falling back to LocalStorageAdapter"
+            LocalStorageAdapter.new
+          end
+        rescue LoadError => e
+          puts "[StorageService] S3StorageAdapter LoadError (#{e.message}), falling back to LocalStorageAdapter"
           LocalStorageAdapter.new
         end
       else

@@ -32,6 +32,8 @@ EXPOSE 8080
 # Environment variables
 ENV PORT=8080
 ENV RACK_ENV=production
+ENV STORAGE_BACKEND=s3
+ENV STORAGE_ADAPTER=s3
 
 # Entrypoint
 CMD ["./start-cloud.sh"]
