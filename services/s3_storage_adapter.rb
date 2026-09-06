@@ -26,11 +26,35 @@ module StorageService
       init_client
     end
 
+    attr_reader :bucket, :region, :endpoint, :client, :access_key_len, :secret_key_len, :detected_cred_keys
+
     def init_client
       begin
         require 'aws-sdk-s3'
-        access_key = (ENV['R2_ACCESS_KEY_ID'] || ENV['AWS_ACCESS_KEY_ID']).to_s.strip.gsub(/['"]/, '')
-        secret_key = (ENV['R2_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_ACCESS_KEY']).to_s.strip.gsub(/['"]/, '')
+        access_key = (
+          ENV['AWS_ACCESS_KEY_ID'] ||
+          ENV['S3_ACCESS_KEY_ID'] ||
+          ENV['R2_ACCESS_KEY_ID'] ||
+          ENV['S3_ACCESS_KEY'] ||
+          ENV['S3_KEY_ID'] ||
+          ENV['S3_KEY']
+        ).to_s.strip.gsub(/['"]/, '')
+
+        secret_key = (
+          ENV['AWS_SECRET_ACCESS_KEY'] ||
+          ENV['S3_SECRET_ACCESS_KEY'] ||
+          ENV['R2_SECRET_ACCESS_KEY'] ||
+          ENV['S3_SECRET_KEY'] ||
+          ENV['S3_SECRET'] ||
+          ENV['AWS_SECRET_KEY']
+        ).to_s.strip.gsub(/['"]/, '')
+
+        @access_key_len = access_key.length
+        @secret_key_len = secret_key.length
+        @detected_cred_keys = %w[
+          AWS_ACCESS_KEY_ID S3_ACCESS_KEY_ID R2_ACCESS_KEY_ID S3_ACCESS_KEY S3_KEY_ID S3_KEY
+          AWS_SECRET_ACCESS_KEY S3_SECRET_ACCESS_KEY R2_SECRET_ACCESS_KEY S3_SECRET_KEY S3_SECRET AWS_SECRET_KEY
+        ].select { |k| ENV.key?(k) && !ENV[k].to_s.empty? }
         
         client_opts = {
           region: @region,
@@ -38,6 +62,8 @@ module StorageService
         }
         if !access_key.empty? && !secret_key.empty?
           client_opts[:credentials] = Aws::Credentials.new(access_key, secret_key)
+        else
+          puts "[S3StorageAdapter Warning] Missing access_key or secret_key (len: #{access_key.length}/#{secret_key.length})"
         end
         client_opts[:endpoint] = @endpoint if @endpoint && !@endpoint.empty?
         @client = Aws::S3::Client.new(client_opts)
