@@ -475,6 +475,7 @@ module SeedData
 
     AggregationService.aggregate_case_evidence(case2['id'], f2_2['id'])
 
-    puts "Seed data creation complete! Cases loaded: #{Database.list_cases.size}"
+    total_cases = Database.query("SELECT count(*) as c FROM cases").first&.dig('c').to_i
+    puts "Seed data creation complete! Cases loaded: #{total_cases}"
   end
 end
