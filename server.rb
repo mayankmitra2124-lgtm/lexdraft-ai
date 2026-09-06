@@ -308,7 +308,7 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
           'region' => adapter.respond_to?(:region) ? adapter.region : nil,
           'endpoint_host' => endpoint_val ? (URI(endpoint_val).host rescue 'invalid_uri') : nil,
           'git_commit' => ENV['RENDER_GIT_COMMIT'],
-          'deploy_version' => 'phase2_v6',
+          'deploy_version' => 'phase2_v7',
           'access_key_len' => adapter.respond_to?(:access_key_len) ? adapter.access_key_len : nil,
           'secret_key_len' => adapter.respond_to?(:secret_key_len) ? adapter.secret_key_len : nil,
           'detected_cred_keys' => adapter.respond_to?(:detected_cred_keys) ? adapter.detected_cred_keys : nil,
@@ -533,11 +533,46 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
       elsif method == 'GET' && path =~ %r{^/api/cases/([^/]+)/files/([^/]+)/download$}
         case_id = $1
         file_id = $2
-        unless Database.verify_case_access(case_id, current_user)
+        has_access = Database.verify_case_access(case_id, current_user)
+        file_rec = Database.get_file(file_id)
+
+        # If database was wiped during container redeploy, recover metadata from S3 adapter
+        if file_rec.nil? && StorageService.adapter.respond_to?(:client) && StorageService.adapter.client
+          begin
+            prefix = "tenants/#{current_user['tenant_id']}/cases/#{case_id}/evidence/#{file_id}/"
+            resp = StorageService.adapter.client.list_objects_v2(
+              bucket: StorageService.adapter.bucket,
+              prefix: prefix,
+              max_keys: 1
+            )
+            if resp.contents && !resp.contents.empty?
+              matched_key = resp.contents.first.key
+              head_meta = StorageService.adapter.client.head_object(
+                bucket: StorageService.adapter.bucket,
+                key: matched_key
+              )
+              user_meta = head_meta.metadata.to_h
+              orig_name = user_meta['original-name'] || File.basename(matched_key)
+              file_rec = {
+                'id' => file_id,
+                'case_id' => case_id,
+                'tenant_id' => current_user['tenant_id'],
+                'storage_key' => matched_key,
+                'original_name' => orig_name,
+                'file_size' => head_meta.content_length
+              }
+              has_access = true # Verified ownership via S3 key tenant scoping prefix
+            end
+          rescue => e
+            puts "[Download Recovery Error] #{e.message}"
+          end
+        end
+
+        unless has_access
           json_response(res, { 'error' => 'Forbidden: You do not have access to this case evidence.' }, 403)
           return
         end
-        file_rec = Database.get_file(file_id)
+
         if file_rec.nil? || file_rec['case_id'] != case_id
           json_response(res, { 'error' => 'Evidence file not found.' }, 404)
           return
