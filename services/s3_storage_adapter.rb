@@ -9,12 +9,18 @@ module StorageService
     attr_reader :bucket, :region, :endpoint, :client
 
     def initialize(options = {})
-      @bucket = options[:bucket] || ENV['R2_BUCKET'] || ENV['S3_BUCKET'] || ENV['S3_BUCKET_NAME'] || 'lexdraft-evidence-prod'
-      @region = options[:region] || ENV['R2_REGION'] || ENV['S3_REGION'] || ENV['AWS_REGION'] || 'auto'
-      @endpoint = options[:endpoint] || ENV['R2_ENDPOINT'] || ENV['S3_ENDPOINT'] || ENV['AWS_ENDPOINT_URL']
+      raw_bucket = options[:bucket] || ENV['R2_BUCKET'] || ENV['S3_BUCKET'] || ENV['S3_BUCKET_NAME'] || 'lexdraft-evidence-prod'
+      raw_endpoint = options[:endpoint] || ENV['R2_ENDPOINT'] || ENV['S3_ENDPOINT'] || ENV['AWS_ENDPOINT_URL']
+      raw_region = options[:region] || ENV['R2_REGION'] || ENV['S3_REGION'] || ENV['AWS_REGION']
+
+      @bucket = raw_bucket.to_s.strip.gsub(/['"]/, '')
+      @endpoint = raw_endpoint.to_s.strip.gsub(/['"]/, '').chomp('/') unless raw_endpoint.to_s.empty?
+      
       default_region = (@endpoint && @endpoint.include?('r2.cloudflarestorage.com')) ? 'auto' : 'us-east-1'
-      @region = options[:region] || ENV['R2_REGION'] || ENV['S3_REGION'] || ENV['AWS_REGION'] || default_region
+      @region = raw_region.to_s.strip.gsub(/['"]/, '')
+      @region = default_region if @region.empty?
       @region = 'us-east-1' if @region == 'auto' && (@endpoint.nil? || !@endpoint.include?('r2.cloudflarestorage.com'))
+
       @force_path_style = options.key?(:force_path_style) ? options[:force_path_style] : (ENV['S3_FORCE_PATH_STYLE'] != 'false')
       
       init_client
@@ -23,15 +29,17 @@ module StorageService
     def init_client
       begin
         require 'aws-sdk-s3'
-        access_key = ENV['R2_ACCESS_KEY_ID'] || ENV['AWS_ACCESS_KEY_ID']
-        secret_key = ENV['R2_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_ACCESS_KEY']
+        access_key = (ENV['R2_ACCESS_KEY_ID'] || ENV['AWS_ACCESS_KEY_ID']).to_s.strip.gsub(/['"]/, '')
+        secret_key = (ENV['R2_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_ACCESS_KEY']).to_s.strip.gsub(/['"]/, '')
+        
         client_opts = {
           region: @region,
-          access_key_id: access_key,
-          secret_access_key: secret_key
+          force_path_style: @force_path_style
         }
+        if !access_key.empty? && !secret_key.empty?
+          client_opts[:credentials] = Aws::Credentials.new(access_key, secret_key)
+        end
         client_opts[:endpoint] = @endpoint if @endpoint && !@endpoint.empty?
-        client_opts[:force_path_style] = @force_path_style
         @client = Aws::S3::Client.new(client_opts)
         @s3_resource = Aws::S3::Resource.new(client: @client)
       rescue => e
