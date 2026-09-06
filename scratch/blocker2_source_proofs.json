@@ -1,0 +1,199 @@
+{
+  "database_source": "case_organizer.db (Authoritative SQLite Source of Record)",
+  "timestamp": "2026-09-06T12:59:53Z",
+  "total_tables": 16,
+  "integrity_checks": {
+    "jobs_idempotency_key_unique": true,
+    "cases_tenant_fk_valid": true,
+    "evidence_files_case_fk_valid": true,
+    "extractions_file_fk_valid": true
+  },
+  "tables": {
+    "tenants": {
+      "row_count": 117,
+      "primary_key_column": "id",
+      "primary_key_count": 117,
+      "primary_key_set_sha256": "3e7a5b7e795eb9c1b0167651a883647ae602c6475a985aadf9c5b66b1a0edbe8",
+      "canonical_row_hash": "736d45e0c8993aa8e1b8f38575944427e1ce007fa2bb0735296d014804a4a1c9",
+      "sample_pks": [
+        "tnt_1788598498_3991",
+        "tnt_1788598498_5565",
+        "tnt_1788598498_6091"
+      ]
+    },
+    "users": {
+      "row_count": 116,
+      "primary_key_column": "id",
+      "primary_key_count": 116,
+      "primary_key_set_sha256": "e64e84f5c64c1e688455f60614a2391192e1fe8f99885466fdad640e2fe207ac",
+      "canonical_row_hash": "cd1e9cc50827dbabeaf480c43d1b451ac79f706e5439ba758e94c53088d62c0f",
+      "sample_pks": [
+        "usr_1788598498_3991",
+        "usr_1788598498_5565",
+        "usr_1788598498_6091"
+      ]
+    },
+    "user_sessions": {
+      "row_count": 93,
+      "primary_key_column": "id",
+      "primary_key_count": 93,
+      "primary_key_set_sha256": "55b7399da2866e2c856f9901af9eec34bca4210194d99e71a2b3b2320175e440",
+      "canonical_row_hash": "8b4c4624070f72eba05d3dab7e1f22031b19901767104c4817a1bf8b7cb345c1",
+      "sample_pks": [
+        "sess_1788598498_3865",
+        "sess_1788598498_4295",
+        "sess_1788598498_6062"
+      ]
+    },
+    "ip_login_attempts": {
+      "row_count": 0,
+      "primary_key_column": "ip",
+      "primary_key_count": 0,
+      "primary_key_set_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical_row_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sample_pks": [
+
+      ]
+    },
+    "cases": {
+      "row_count": 242,
+      "primary_key_column": "id",
+      "primary_key_count": 242,
+      "primary_key_set_sha256": "23af029de08f5ba069f56bc976e4a280965a6639711ca091b047985350618c22",
+      "canonical_row_hash": "f86670b253906c51ec93e531210003843ea2657cd134de16ca0eec8ac34eb8da",
+      "sample_pks": [
+        "case_1787783386_8518",
+        "case_1787783396_3898",
+        "case_1787783414_3903"
+      ]
+    },
+    "evidence_files": {
+      "row_count": 184,
+      "primary_key_column": "id",
+      "primary_key_count": 184,
+      "primary_key_set_sha256": "05985f842c12f19db8d4adee923f145f01d66dccb9d84be8e5819921dd2903aa",
+      "canonical_row_hash": "5d26dbec7697da966bcbbafda783354bcd2da8f48a364aa51ec755014a3922ef",
+      "sample_pks": [
+        "file_1787778475_1227",
+        "file_1787778475_2272",
+        "file_1787778475_2567"
+      ]
+    },
+    "file_chunks": {
+      "row_count": 0,
+      "primary_key_column": "id",
+      "primary_key_count": 0,
+      "primary_key_set_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical_row_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sample_pks": [
+
+      ]
+    },
+    "extractions": {
+      "row_count": 184,
+      "primary_key_column": "id",
+      "primary_key_count": 184,
+      "primary_key_set_sha256": "8666f0c7837703fd1b0c0ef03471da71329f97973edbc2308a3c7122f0e9b406",
+      "canonical_row_hash": "148224be69d95e1592d4fcea173f427154ba69f1dfe78a3ac7f78e9fb1eeef0a",
+      "sample_pks": [
+        "ext_1787778475_3540",
+        "ext_1787778475_5077",
+        "ext_1787778475_6876"
+      ]
+    },
+    "master_summaries": {
+      "row_count": 179,
+      "primary_key_column": "id",
+      "primary_key_count": 179,
+      "primary_key_set_sha256": "2eb5ad8e8a1997142c50922d6c7dfcaa2203ceb11322d816ba8ab8ad6aff4a46",
+      "canonical_row_hash": "14a1d2474cf33aac022293a24c59f2e0a23823c9e94c2d2a27077e9851a2d640",
+      "sample_pks": [
+        "sum_case_1787855215_9681_v1",
+        "sum_case_1787855215_9681_v2",
+        "sum_case_1787855215_9681_v3"
+      ]
+    },
+    "diff_logs": {
+      "row_count": 63,
+      "primary_key_column": "id",
+      "primary_key_count": 63,
+      "primary_key_set_sha256": "c106efa39097eb00bc0ae2d451b8a695d4ece653028d82e6fc32d023190f61fe",
+      "canonical_row_hash": "a1319de00338d297f70114833fd8c728f09becbeb722df215abdb244680b3055",
+      "sample_pks": [
+        "diff_1787778475_6835",
+        "diff_1787778475_8866",
+        "diff_1787778509_9887"
+      ]
+    },
+    "notifications": {
+      "row_count": 160,
+      "primary_key_column": "id",
+      "primary_key_count": 160,
+      "primary_key_set_sha256": "c2427e40091c79bf286fdaad08b23027431f48b802885b080c20dbfbb779bc08",
+      "canonical_row_hash": "eb7999f113414f6d961419872d63dc0b6d01f17311593d68cdeaa4281a1929f0",
+      "sample_pks": [
+        "notif_1787778475_1607",
+        "notif_1787778475_3988",
+        "notif_1787778475_6603"
+      ]
+    },
+    "system_settings": {
+      "row_count": 1,
+      "primary_key_column": "key",
+      "primary_key_count": 1,
+      "primary_key_set_sha256": "d1a5d4cc0ff5a195bd8fe8a9b4b122e6ad608f9e709c9548ae89f2b7e3f3a31e",
+      "canonical_row_hash": "e14854d546e87a2f7b7f128be114fc868a639e8d3a8f8e5163f462b7f60e893d",
+      "sample_pks": [
+        "gemini_api_key"
+      ]
+    },
+    "performance_metrics": {
+      "row_count": 89,
+      "primary_key_column": "id",
+      "primary_key_count": 89,
+      "primary_key_set_sha256": "ab8e5354ae30276661643011562af66b99d852b42d80e0be66f74c3aff4f7870",
+      "canonical_row_hash": "40f310f91f2b904117194d3e3e45cfd71921fead270ac454259413b0a712ec00",
+      "sample_pks": [
+        "perf_1788372359_5481",
+        "perf_1788372359_9985",
+        "perf_1788598667_1399"
+      ]
+    },
+    "extraction_cache": {
+      "row_count": 67,
+      "primary_key_column": "case_id",
+      "primary_key_count": 67,
+      "primary_key_set_sha256": "af3538a88b195dda433f43eb964db24ae3c45edc0ca5ab79b772c8a7de677034",
+      "canonical_row_hash": "ba27453bbdba639eef74d5e911c21237fbbcfdb29224d5c59c4d270114d7907f",
+      "sample_pks": [
+        "case_1788640489_2384",
+        "case_1788640489_6198",
+        "case_1788640519_5494"
+      ]
+    },
+    "audit_logs": {
+      "row_count": 70,
+      "primary_key_column": "id",
+      "primary_key_count": 70,
+      "primary_key_set_sha256": "1a9e8c7a1634f9fec02307035145acb171dc015c7d96af75247148140661d69e",
+      "canonical_row_hash": "1b4ae6dc1d7db5a626ab58c58b5d51a661276baa1ff6a3fc89bd61fca2001a33",
+      "sample_pks": [
+        "aud_1788694095_296b5ff2",
+        "aud_1788694095_4f85ec92",
+        "aud_1788694095_5ff709ed"
+      ]
+    },
+    "jobs": {
+      "row_count": 17,
+      "primary_key_column": "id",
+      "primary_key_count": 17,
+      "primary_key_set_sha256": "bc852ede6844fa5e88dd284e7df671213fd60e2239bc74e6e305e9b451679bb7",
+      "canonical_row_hash": "5ccb9a0779d67d53345cb10f8c9e4c1a09e903dbe836028a229bbdb2774fc7a7",
+      "sample_pks": [
+        "job_1788695963_c93bada6",
+        "job_1788695963_eb50301e",
+        "job_1788696006_6754888d"
+      ]
+    }
+  }
+}

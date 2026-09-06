@@ -1,9 +1,11 @@
-# Production Dockerfile for LexDraft AI (Render / Railway / Cloud VM)
+# Production Dockerfile for LexDraft AI (Phase 2 Puma + PostgreSQL + S3)
 FROM ruby:3.2-slim
 
-# Install system dependencies
+# Install system dependencies (including libpq for PostgreSQL)
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     build-essential \
+    libpq-dev \
+    postgresql-client \
     libsqlite3-dev \
     sqlite3 \
     curl \
@@ -19,10 +21,10 @@ RUN bundle install
 COPY . .
 
 # Ensure storage directories exist
-RUN mkdir -p uploads
+RUN mkdir -p uploads archive/untracked_pre_phase2
 
 # Ensure startup scripts are executable
-RUN chmod +x start-cloud.sh start.sh
+RUN chmod +x start-cloud.sh start.sh bin/worker.rb
 
 # Expose default HTTP port
 EXPOSE 8080

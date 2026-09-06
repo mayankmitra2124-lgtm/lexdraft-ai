@@ -1,0 +1,203 @@
+{
+  "suite_name": "API-Level Tenant Isolation & Cross-Tenant Attack Suite",
+  "user_a": {
+    "id": "usr_1788598498_6091",
+    "tenant_id": "tnt_1788598498_6091"
+  },
+  "user_b": {
+    "id": "usr_1788598498_5565",
+    "tenant_id": "tnt_1788598498_5565"
+  },
+  "victim_case_id": "case_usr_1788598498_5565_starter",
+  "total_attacks": 13,
+  "all_attacks_denied_without_disclosure": true,
+  "attacks": [
+    {
+      "test_id": "ATTACK-CASE-ACCESS",
+      "target_resource": "Case Metadata",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 404,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Case not found or access denied"
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-CASE-FILES-LIST",
+      "target_resource": "Case Evidence File List",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/files",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not have access to files for this case."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-EVIDENCE-FILE-DETAIL",
+      "target_resource": "Evidence File Detail",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/files/file_usr_1788598498_5565_sample",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 404,
+      "denial_without_disclosure": true,
+      "response_snippet": "Not Found",
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-DOWNLOAD-PRESIGNED-URL",
+      "target_resource": "Object Storage Download / Presigned URL",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/files/file_usr_1788598498_5565_sample/download",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not have access to this case evidence."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-EXTRACTION-ACCESS",
+      "target_resource": "AI Extraction",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/files/file_usr_1788598498_5565_sample/extractions",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 404,
+      "denial_without_disclosure": true,
+      "response_snippet": "Not Found",
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-MASTER-SUMMARY",
+      "target_resource": "Master Summary Narrative",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/summary",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not have access to this case summary."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-CERTIFICATE-GEN",
+      "target_resource": "Section 65B Legal Certificate",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/files/file_usr_1788598498_5565_sample/certificate",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not have access to this certificate."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-DIFF-LOGS",
+      "target_resource": "Case Diff Logs",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/diffs",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not have access to diffs for this case."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-PROGRESS-POLLING",
+      "target_resource": "Case Ingestion Progress",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/progress",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not have access to this case progress."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-SSE-EVENT-STREAM",
+      "target_resource": "Case Event Stream (SSE)",
+      "method": "GET",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/events",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not have access to this case stream."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-INJECT-EVIDENCE",
+      "target_resource": "Unauthorized Evidence Injection",
+      "method": "POST",
+      "path": "/api/cases/case_usr_1788598498_5565_starter/upload",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 404,
+      "denial_without_disclosure": true,
+      "response_snippet": "Not Found",
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-DELETE-CASE",
+      "target_resource": "Unauthorized Case Destruction",
+      "method": "DELETE",
+      "path": "/api/cases/case_usr_1788598498_5565_starter",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 403,
+      "denial_without_disclosure": true,
+      "response_snippet": {
+        "error": "Forbidden: You do not own this case."
+      },
+      "status": "PASS"
+    },
+    {
+      "test_id": "ATTACK-FORGED-OBJECT-STORAGE-TOKEN",
+      "target_resource": "Direct Object Storage Download Endpoint",
+      "method": "GET",
+      "path": "/api/files/file_usr_1788598498_5565_sample/download?token=forged_token_123",
+      "attacker_tenant": "tnt_1788598498_6091",
+      "victim_tenant": "tnt_1788598498_5565",
+      "expected_status": "403 or 404",
+      "actual_status": 404,
+      "denial_without_disclosure": true,
+      "response_snippet": "Not Found",
+      "status": "PASS"
+    }
+  ]
+}

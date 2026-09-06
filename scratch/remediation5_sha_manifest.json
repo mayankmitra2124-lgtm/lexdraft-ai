@@ -1,0 +1,53 @@
+{
+  "remediation_name": "Remediation 5: Authoritative Evidence SHA Reconciliation & Backfill",
+  "historical_sha256_comparison": "NOT_POSSIBLE",
+  "note": "Legacy database records had NULL sha256_hash metadata prior to Phase 2. All 174 physical evidence files were read byte-by-byte from disk, size-verified against database metadata, and authoritative SHA-256 hashes were established and backfilled.",
+  "total_recoverable": 174,
+  "sizes_verified": 174,
+  "size_mismatches": 0,
+  "authoritative_hashes_established_and_backfilled": 174,
+  "post_backfill_verification_rate": "174/174",
+  "cryptographically_verified_after_hash_establishment": true,
+  "sample_manifest_entries": [
+    {
+      "file_id": "file_1787778475_7902",
+      "path": "/Users/mayankmitra/Documents/case-evidence-organizer/uploads/case_apex_v_delhimetro/1787778475_6fbf0a2a_Master_EPC_Contract_14Jan2023.pdf",
+      "size": 994,
+      "sha256": "a05f87ea21c23fcaee2558e2bdd1ee0bf7463bc980decca223978850e140933c",
+      "size_verified": true
+    },
+    {
+      "file_id": "file_1787778475_1227",
+      "path": "/Users/mayankmitra/Documents/case-evidence-organizer/uploads/case_apex_v_delhimetro/1787778475_deee4419_Architect_Milestone_Certificate_28June2024.pdf",
+      "size": 741,
+      "sha256": "fd7bf78ae0605003ffcdb4841edc1eb8c51fcaa2e031f2c9d0a9245f3586cc39",
+      "size_verified": true
+    },
+    {
+      "file_id": "file_1787778475_2567",
+      "path": "/Users/mayankmitra/Documents/case-evidence-organizer/uploads/case_apex_v_delhimetro/1787778475_741d6c33_WhatsApp_Chat_Export_Singhania_Rajeshwar.txt",
+      "size": 1111,
+      "sha256": "1c5525d6031c29b0b60d79f1775efa823a4e9496f1c6e423727778880363b338",
+      "size_verified": true
+    },
+    {
+      "file_id": "file_1787778475_2272",
+      "path": "/Users/mayankmitra/Documents/case-evidence-organizer/uploads/case_apex_v_delhimetro/1787778475_6ab80d29_Bank_Guarantee_Invocation_Threat_Letter_18Aug2024.pdf",
+      "size": 872,
+      "sha256": "3906b06122a07a4f830feaded9251f65c717f76e2f346d2f221d15b455430c10",
+      "size_verified": true
+    },
+    {
+      "file_id": "file_1787778475_8365",
+      "path": "/Users/mayankmitra/Documents/case-evidence-organizer/uploads/case_grover_v_mehta/1787778475_83b15b8f_SBI_Cheque_Return_Memo_10July2024.pdf",
+      "size": 385,
+      "sha256": "e168b751c6684eea3ad55453ce43b726fb461aa33f03c99d2e3593f6e408f424",
+      "size_verified": true
+    }
+  ],
+  "missing_legacy_payload_records": {
+    "count": 10,
+    "status_enforced": "Failed",
+    "worker_gate_refusal": "VERIFIED_CANNOT_REACH_AI"
+  }
+}

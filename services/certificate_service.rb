@@ -22,7 +22,8 @@ module CertificateService
     case_title = case_record['name'] || "Commercial Arbitration / Civil Matter"
     case_number = case_record['case_number'] || "O.M.P. (COMM) / CS (COMM)"
 
-    certificate_id = "CERT-65B-#{Time.now.strftime('%Y%m%d')}-#{rand(1000..9999)}"
+    cert_seed = "#{case_record['id']}:#{file_record['id']}:#{sha256_digest}"
+    certificate_id = "CERT-65B-#{Digest::SHA256.hexdigest(cert_seed)[0..11].upcase}"
     formatted_date = Time.now.strftime("%B %d, %Y")
 
     certificate_text = <<~CERT

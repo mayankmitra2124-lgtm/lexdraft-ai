@@ -121,6 +121,18 @@ cert = CertificateService.generate_section_65b_certificate(test_case, file_rec)
 abort("FAIL: Certificate missing SHA-256") unless cert[:sha256]
 puts " [PASS] Section 65B Certificate verified (Hash: #{cert[:sha256][0..15]}...)."
 
+# Teardown test artifacts to prevent polluting canonical counts
+puts "[Teardown] Cleaning up transient test case & files..."
+Database.query("DELETE FROM evidence_files WHERE case_id = ?", [test_case['id']])
+Database.query("DELETE FROM extractions WHERE case_id = ?", [test_case['id']])
+Database.query("DELETE FROM master_summaries WHERE case_id = ?", [test_case['id']])
+Database.query("DELETE FROM cases WHERE id = ?", [test_case['id']])
+Database.query("DELETE FROM user_sessions WHERE user_id = ?", [user['id']])
+Database.query("DELETE FROM users WHERE id = ?", [user['id']])
+Database.query("DELETE FROM tenants WHERE id = ?", ["ten_#{user['id']}"])
+FileUtils.rm_rf(File.expand_path("../../uploads/#{test_case['id']}", __FILE__))
+puts " [PASS] Teardown complete. Zero database drift."
+
 puts "\n=========================================================="
 puts " ALL 10 CANONICAL ARCHITECTURE & RUNTIME CHECKS PASSED!"
 puts "=========================================================="

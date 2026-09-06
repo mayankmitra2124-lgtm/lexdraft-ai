@@ -1,0 +1,7 @@
+{
+  "test_name": "Remediation 9: Certification & Aggregation Idempotency",
+  "certificate_deterministic_id": "CERT-65B-38B27CCB421B",
+  "certificate_idempotent": true,
+  "summary_version_stable": true,
+  "status": "PASS"
+}

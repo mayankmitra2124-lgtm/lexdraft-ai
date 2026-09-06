@@ -2,6 +2,7 @@
 
 require 'json'
 require 'time'
+require_relative 'gemini_service'
 
 module AggregationService
   def self.aggregate_case_evidence(case_id, newly_processed_file_id = nil)
@@ -41,6 +42,16 @@ module AggregationService
       'cause_of_action_text' => cause_of_action_text,
       'limitation_analysis' => limitation_analysis
     }
+
+    # If previous summary exists and content is identical without new file trigger, return existing summary idempotently
+    if previous_summary && newly_processed_file_id.nil?
+      keys_to_compare = %w[parties jurisdiction chronology facts_narrative cause_of_action_text limitation_analysis]
+      prev_payload = keys_to_compare.map { |k| previous_summary[k] }
+      new_payload = keys_to_compare.map { |k| new_summary_data[k] }
+      if prev_payload == new_payload
+        return previous_summary
+      end
+    end
 
     # Save new version of master summary
     saved_summary = Database.save_master_summary(case_id, new_summary_data)
