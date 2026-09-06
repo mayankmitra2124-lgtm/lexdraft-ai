@@ -5,6 +5,7 @@ require 'securerandom'
 require 'digest'
 require_relative 'storage_adapter'
 require_relative 'local_storage_adapter'
+require_relative 's3_storage_adapter'
 
 module StorageService
   STORAGE_ROOT = File.expand_path('../../uploads', __FILE__)

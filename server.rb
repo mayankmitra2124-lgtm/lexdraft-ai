@@ -17,6 +17,7 @@ require 'digest'
 require_relative 'db/database'
 require_relative 'db/seed_data'
 require_relative 'services/storage_service'
+require_relative 'services/s3_storage_adapter'
 require_relative 'services/media_chunker'
 require_relative 'services/transcription_service'
 require_relative 'services/certificate_service'
@@ -257,70 +258,74 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
     end
 
     if method == 'GET' && path == '/api/system/storage-diagnostic'
-      current_user = extract_current_user(req)
-      unless current_user
-        json_response(res, { 'error' => 'Unauthorized. Authentication required.' }, 401)
-        return
-      end
-
-      adapter = StorageService.adapter
-      target_key = (req.query && req.query['key']) || "tenants/tnt_1788715913_2320/cases/case_usr_1788715913_2320_starter/evidence/ef_1788716743_27383ed0/d47dd3309de15af4de971f68e4795deb6fd34f1547771c88e19745d567c5930d"
-      local_path = (req.query && req.query['path']) || "/app/uploads/case_usr_1788715913_2320_starter/1788716743_016e92b1_live_evidence_affidavit.txt"
-
-      env_keys_present = %w[
-        STORAGE_BACKEND STORAGE_ADAPTER
-        R2_BUCKET S3_BUCKET S3_BUCKET_NAME
-        R2_ENDPOINT S3_ENDPOINT AWS_ENDPOINT_URL
-        R2_ACCESS_KEY_ID AWS_ACCESS_KEY_ID
-        R2_SECRET_ACCESS_KEY AWS_SECRET_ACCESS_KEY
-        R2_REGION S3_REGION AWS_REGION
-        S3_FORCE_PATH_STYLE S3_SERVER_SIDE_ENCRYPTION
-      ].select { |k| ENV.key?(k) && !ENV[k].to_s.empty? }
-
-      is_s3 = adapter.is_a?(StorageService::S3StorageAdapter)
-      s3_avail = adapter.respond_to?(:s3_available?) ? adapter.s3_available? : false
-      bucket_name = adapter.respond_to?(:bucket) ? adapter.bucket : nil
-      endpoint_val = adapter.respond_to?(:endpoint) ? adapter.endpoint : nil
-
-      obj_exists = adapter.object_exists?(key: target_key) rescue false
-      obj_size = adapter.object_size(key: target_key) rescue 0
-
-      r2_head_meta = nil
-      r2_head_error = nil
-      if is_s3 && adapter.client
-        begin
-          h = adapter.client.head_object(bucket: bucket_name, key: target_key)
-          r2_head_meta = {
-            'content_length' => h.content_length,
-            'content_type' => h.content_type,
-            'last_modified' => h.last_modified&.iso8601,
-            'etag' => h.etag,
-            'metadata' => h.metadata.to_h
-          }
-        rescue => e
-          r2_head_error = "#{e.class}: #{e.message}"
+      begin
+        current_user = extract_current_user(req)
+        unless current_user
+          json_response(res, { 'error' => 'Unauthorized. Authentication required.' }, 401)
+          return
         end
+
+        adapter = StorageService.adapter
+        target_key = (req.query && req.query['key']) || "tenants/tnt_1788715913_2320/cases/case_usr_1788715913_2320_starter/evidence/ef_1788716743_27383ed0/d47dd3309de15af4de971f68e4795deb6fd34f1547771c88e19745d567c5930d"
+        local_path = (req.query && req.query['path']) || "/app/uploads/case_usr_1788715913_2320_starter/1788716743_016e92b1_live_evidence_affidavit.txt"
+
+        env_keys_present = %w[
+          STORAGE_BACKEND STORAGE_ADAPTER
+          R2_BUCKET S3_BUCKET S3_BUCKET_NAME
+          R2_ENDPOINT S3_ENDPOINT AWS_ENDPOINT_URL
+          R2_ACCESS_KEY_ID AWS_ACCESS_KEY_ID
+          R2_SECRET_ACCESS_KEY AWS_SECRET_ACCESS_KEY
+          R2_REGION S3_REGION AWS_REGION
+          S3_FORCE_PATH_STYLE S3_SERVER_SIDE_ENCRYPTION
+        ].select { |k| ENV.key?(k) && !ENV[k].to_s.empty? }
+
+        is_s3 = adapter.class.name.to_s.include?('S3StorageAdapter')
+        s3_avail = adapter.respond_to?(:s3_available?) ? adapter.s3_available? : false
+        bucket_name = adapter.respond_to?(:bucket) ? adapter.bucket : nil
+        endpoint_val = adapter.respond_to?(:endpoint) ? adapter.endpoint : nil
+
+        obj_exists = adapter.object_exists?(key: target_key) rescue false
+        obj_size = adapter.object_size(key: target_key) rescue 0
+
+        r2_head_meta = nil
+        r2_head_error = nil
+        if is_s3 && adapter.respond_to?(:client) && adapter.client
+          begin
+            h = adapter.client.head_object(bucket: bucket_name, key: target_key)
+            r2_head_meta = {
+              'content_length' => h.content_length,
+              'content_type' => h.content_type,
+              'last_modified' => h.last_modified&.iso8601,
+              'etag' => h.etag,
+              'metadata' => h.metadata.to_h
+            }
+          rescue => e
+            r2_head_error = "#{e.class}: #{e.message}"
+          end
+        end
+
+        local_exists = File.file?(local_path)
+        local_size = local_exists ? File.size(local_path) : 0
+
+        json_response(res, {
+          'adapter_class' => adapter.class.name,
+          'is_s3_adapter' => is_s3,
+          's3_available' => s3_avail,
+          'bucket' => bucket_name,
+          'endpoint_host' => endpoint_val ? (URI(endpoint_val).host rescue 'invalid_uri') : nil,
+          'env_keys_present' => env_keys_present,
+          'target_key' => target_key,
+          'adapter_object_exists' => obj_exists,
+          'adapter_object_size' => obj_size,
+          'r2_head_metadata' => r2_head_meta,
+          'r2_head_error' => r2_head_error,
+          'local_file_path' => local_path,
+          'local_file_exists' => local_exists,
+          'local_file_size' => local_size
+        })
+      rescue => e
+        json_response(res, { 'error' => "#{e.class}: #{e.message}", 'backtrace' => e.backtrace.first(5) }, 500)
       end
-
-      local_exists = File.file?(local_path)
-      local_size = local_exists ? File.size(local_path) : 0
-
-      json_response(res, {
-        'adapter_class' => adapter.class.name,
-        'is_s3_adapter' => is_s3,
-        's3_available' => s3_avail,
-        'bucket' => bucket_name,
-        'endpoint_host' => endpoint_val ? (URI(endpoint_val).host rescue 'invalid_uri') : nil,
-        'env_keys_present' => env_keys_present,
-        'target_key' => target_key,
-        'adapter_object_exists' => obj_exists,
-        'adapter_object_size' => obj_size,
-        'r2_head_metadata' => r2_head_meta,
-        'r2_head_error' => r2_head_error,
-        'local_file_path' => local_path,
-        'local_file_exists' => local_exists,
-        'local_file_size' => local_size
-      })
       return
     end
 
