@@ -269,15 +269,8 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
         target_key = (req.query && req.query['key']) || "tenants/tnt_1788715913_2320/cases/case_usr_1788715913_2320_starter/evidence/ef_1788716743_27383ed0/d47dd3309de15af4de971f68e4795deb6fd34f1547771c88e19745d567c5930d"
         local_path = (req.query && req.query['path']) || "/app/uploads/case_usr_1788715913_2320_starter/1788716743_016e92b1_live_evidence_affidavit.txt"
 
-        env_keys_present = %w[
-          STORAGE_BACKEND STORAGE_ADAPTER
-          R2_BUCKET S3_BUCKET S3_BUCKET_NAME
-          R2_ENDPOINT S3_ENDPOINT AWS_ENDPOINT_URL
-          R2_ACCESS_KEY_ID AWS_ACCESS_KEY_ID
-          R2_SECRET_ACCESS_KEY AWS_SECRET_ACCESS_KEY
-          R2_REGION S3_REGION AWS_REGION
-          S3_FORCE_PATH_STYLE S3_SERVER_SIDE_ENCRYPTION
-        ].select { |k| ENV.key?(k) && !ENV[k].to_s.empty? }
+        all_safe_env_names = ENV.keys.sort.reject { |k| k =~ /KEY|SECRET|TOKEN|PASS|AUTH/i }
+        has_secret_key = ENV.keys.any? { |k| k =~ /(R2|AWS|S3).*(SECRET|KEY)/i && !ENV[k].to_s.empty? }
 
         is_s3 = adapter.class.name.to_s.include?('S3StorageAdapter')
         s3_avail = adapter.respond_to?(:s3_available?) ? adapter.s3_available? : false
@@ -312,8 +305,8 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
           'is_s3_adapter' => is_s3,
           's3_available' => s3_avail,
           'bucket' => bucket_name,
-          'endpoint_host' => endpoint_val ? (URI(endpoint_val).host rescue 'invalid_uri') : nil,
-          'env_keys_present' => env_keys_present,
+          'all_safe_env_names' => all_safe_env_names,
+          'has_secret_or_access_key' => has_secret_key,
           'target_key' => target_key,
           'adapter_object_exists' => obj_exists,
           'adapter_object_size' => obj_size,
