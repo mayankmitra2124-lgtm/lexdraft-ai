@@ -1084,7 +1084,14 @@ class LexDraftApp
     req = RackRequestAdapter.new(env)
     res = RackResponseAdapter.new
     @servlet.service(req, res)
-    [res.status, res.header, [res.body.to_s]]
+    headers = {}
+    res.header.each do |k, v|
+      headers[k.to_s.downcase] = v.to_s
+    end
+    headers['server'] ||= 'Puma (Ruby/3.2)'
+    body_str = res.body.is_a?(String) ? res.body : res.body.to_s
+    headers['content-length'] ||= body_str.bytesize.to_s
+    [res.status, headers, [body_str]]
   end
 end
 

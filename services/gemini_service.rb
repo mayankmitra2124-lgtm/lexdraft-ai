@@ -255,16 +255,21 @@ module GeminiService
   private
 
   def self.read_file_preview_content(file_path, file_type, file_record = nil)
-    return "" unless File.exist?(file_path)
+    raw = nil
+    if file_record && file_record['storage_key']
+      raw = StorageService.adapter.get_object(key: file_record['storage_key']) rescue nil
+    end
+    if raw.nil? && file_path && File.exist?(file_path)
+      raw = File.binread(file_path, 32768) rescue nil
+    end
+    return "" unless raw
 
     begin
       if file_type == 'WhatsApp/Text' || file_type == 'Document'
-        raw = File.read(file_path, 32768) rescue ""
         raw.force_encoding('UTF-8')
         raw.valid_encoding? ? raw : raw.encode('UTF-8', invalid: :replace, undef: :replace, replace: '?')
       elsif file_type == 'PDF'
-        # PDF raw streams are binary; read binary safely and force to UTF-8 before regex scan
-        raw = File.binread(file_path, 16384) rescue ""
+        # PDF raw streams are binary; force to UTF-8 before regex scan
         raw.force_encoding('UTF-8')
         content = raw.encode('UTF-8', invalid: :replace, undef: :replace, replace: '?')
         

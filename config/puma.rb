@@ -11,8 +11,8 @@ threads min_threads_count, max_threads_count
 port        Integer(ENV.fetch('PORT', 8080))
 environment ENV.fetch('RACK_ENV', 'production')
 
-# Clustered mode for container durability
-workers Integer(ENV.fetch('WEB_CONCURRENCY', 2))
+# Clustered mode for container durability (default 1 worker for free tier memory safety)
+workers Integer(ENV.fetch('WEB_CONCURRENCY', 1))
 
 # Preload application code before forking workers for memory savings
 preload_app!

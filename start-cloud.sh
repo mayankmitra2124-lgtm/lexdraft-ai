@@ -9,11 +9,11 @@ echo "=========================================================="
 # Ensure upload and archive directories exist
 mkdir -p uploads archive/untracked_pre_phase2
 
-# Web container strictly runs Puma only when DISABLE_EMBEDDED_WORKER is set
+# Web container manages background worker daemon based on topology
 if [ "$DISABLE_EMBEDDED_WORKER" = "true" ]; then
-  echo "[Topology Assertion] Embedded worker disabled for production Web tier."
-elif [ "$STANDALONE_WORKER" = "false" ] || [ -z "$STANDALONE_WORKER" ]; then
-  echo "Launching in-process background worker daemon for development..."
+  echo "[Topology Assertion] Dedicated worker tier active; worker daemon disabled in web container."
+else
+  echo "[Topology Assertion] Single-service container topology detected: launching background worker daemon..."
   ruby bin/worker.rb &
 fi
 

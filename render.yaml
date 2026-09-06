@@ -1,11 +1,11 @@
 # Render Blueprint for LexDraft AI (Phase 2 Clustered Architecture)
 services:
-  # 1. Web Tier (Puma / Rack Only)
+  # 1. Web Tier (Puma / Rack)
   - type: web
-    name: lexdraft-ai-web
+    name: lexdraft-ai
     env: docker
     dockerfilePath: Dockerfile
-    plan: starter
+    plan: free
     region: oregon
     branch: main
     autoDeploy: true
