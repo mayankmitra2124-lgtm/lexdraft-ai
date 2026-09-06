@@ -8,17 +8,18 @@ require_relative '../services/aggregation_service'
 
 module SeedData
   def self.seed!
-    Database.init
-    StorageService.init
+    begin
+      Database.init
+      StorageService.init
 
-    # Check if Case 1 exists already
-    existing = Database.get_case('case_apex_v_delhimetro')
-    if existing
-      puts "Seed data already present. Skipping."
-      return
-    end
+      # Check if Case 1 exists already
+      existing = Database.get_case('case_apex_v_delhimetro')
+      if existing
+        puts "Seed data already present. Skipping."
+        return
+      end
 
-    puts "Seeding high-fidelity Indian legal cases..."
+      puts "Seeding high-fidelity Indian legal cases..."
 
     # =========================================================================
     # CASE 1: Commercial Injunction & Section 9 Arbitration Petition
@@ -477,5 +478,9 @@ module SeedData
 
     total_cases = Database.query("SELECT count(*) as c FROM cases").first&.dig('c').to_i
     puts "Seed data creation complete! Cases loaded: #{total_cases}"
+    rescue => e
+      puts "[SeedData Warning] Seed data initialization encountered error (non-fatal): #{e.class} - #{e.message}"
+      puts e.backtrace.first(5).join("\n") if e.backtrace
+    end
   end
 end

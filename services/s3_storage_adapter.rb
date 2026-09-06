@@ -12,6 +12,9 @@ module StorageService
       @bucket = options[:bucket] || ENV['R2_BUCKET'] || ENV['S3_BUCKET'] || ENV['S3_BUCKET_NAME'] || 'lexdraft-evidence-prod'
       @region = options[:region] || ENV['R2_REGION'] || ENV['S3_REGION'] || ENV['AWS_REGION'] || 'auto'
       @endpoint = options[:endpoint] || ENV['R2_ENDPOINT'] || ENV['S3_ENDPOINT'] || ENV['AWS_ENDPOINT_URL']
+      default_region = (@endpoint && @endpoint.include?('r2.cloudflarestorage.com')) ? 'auto' : 'us-east-1'
+      @region = options[:region] || ENV['R2_REGION'] || ENV['S3_REGION'] || ENV['AWS_REGION'] || default_region
+      @region = 'us-east-1' if @region == 'auto' && (@endpoint.nil? || !@endpoint.include?('r2.cloudflarestorage.com'))
       @force_path_style = options.key?(:force_path_style) ? options[:force_path_style] : (ENV['S3_FORCE_PATH_STYLE'] != 'false')
       
       init_client
@@ -60,9 +63,10 @@ module StorageService
           content_type: content_type,
           metadata: meta_formatted
         }
-        # Server-side encryption: AWS requires AES256 if enforced by policy, whereas Cloudflare R2
-        # encrypts all objects automatically at rest and does not require explicit SSE headers.
-        if ENV['S3_SERVER_SIDE_ENCRYPTION'] == 'AES256' || (@endpoint.nil? || !@endpoint.include?('r2.cloudflarestorage.com'))
+        # Server-side encryption: Only send x-amz-server-side-encryption if explicitly configured.
+        # Cloudflare R2 and Supabase Storage encrypt data at rest by default and reject the
+        # x-amz-server-side-encryption header with SignatureDoesNotMatch errors.
+        if ENV['S3_SERVER_SIDE_ENCRYPTION'] == 'AES256'
           put_params[:server_side_encryption] = 'AES256'
         end
 
@@ -70,6 +74,23 @@ module StorageService
           @client.put_object(put_params)
           puts "[S3StorageAdapter] Successfully stored #{key} (#{body.bytesize} bytes) in bucket '#{@bucket}'"
         rescue => e
+          if put_params[:metadata] && !put_params[:metadata].empty?
+            # Retry once without custom metadata in case gateway rejects x-amz-meta headers
+            begin
+              put_params_no_meta = put_params.dup
+              put_params_no_meta.delete(:metadata)
+              @client.put_object(put_params_no_meta)
+              puts "[S3StorageAdapter] Successfully stored #{key} (without custom metadata) in bucket '#{@bucket}'"
+              return {
+                key: key,
+                sha256: digest,
+                bytesize: body.bytesize,
+                content_type: content_type
+              }
+            rescue => retry_err
+              puts "[S3StorageAdapter Error] Failed retry without metadata: #{retry_err.class} - #{retry_err.message}"
+            end
+          end
           puts "[S3StorageAdapter Error] Failed to put_object #{key} to #{@bucket}: #{e.class} - #{e.message}"
           raise e
         end

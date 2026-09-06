@@ -32,8 +32,8 @@ module StorageService
             puts "[StorageService] S3StorageAdapter not available, falling back to LocalStorageAdapter"
             LocalStorageAdapter.new
           end
-        rescue LoadError => e
-          puts "[StorageService] S3StorageAdapter LoadError (#{e.message}), falling back to LocalStorageAdapter"
+        rescue => e
+          puts "[StorageService] S3StorageAdapter initialization failed (#{e.class}: #{e.message}), falling back to LocalStorageAdapter"
           LocalStorageAdapter.new
         end
       else

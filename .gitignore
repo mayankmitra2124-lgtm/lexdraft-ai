@@ -23,3 +23,5 @@ uploads/*
 # case_organizer.db
 *.db-shm
 *.db-wal
+scratch/
+archive/untracked_pre_phase2/
