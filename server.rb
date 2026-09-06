@@ -265,6 +265,11 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
           return
         end
 
+        unless AuthService.admin?(current_user)
+          json_response(res, { 'error' => 'Forbidden: Administrator privileges required to access storage diagnostic.' }, 403)
+          return
+        end
+
         adapter = StorageService.adapter
         target_key = (req.query && req.query['key']) || "tenants/tnt_1788715913_2320/cases/case_usr_1788715913_2320_starter/evidence/ef_1788716743_27383ed0/d47dd3309de15af4de971f68e4795deb6fd34f1547771c88e19745d567c5930d"
         local_path = (req.query && req.query['path']) || "/app/uploads/case_usr_1788715913_2320_starter/1788716743_016e92b1_live_evidence_affidavit.txt"
