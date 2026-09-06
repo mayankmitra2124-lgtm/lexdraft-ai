@@ -308,7 +308,7 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
           'region' => adapter.respond_to?(:region) ? adapter.region : nil,
           'endpoint_host' => endpoint_val ? (URI(endpoint_val).host rescue 'invalid_uri') : nil,
           'git_commit' => ENV['RENDER_GIT_COMMIT'],
-          'deploy_version' => 'phase2_v5',
+          'deploy_version' => 'phase2_v6',
           'access_key_len' => adapter.respond_to?(:access_key_len) ? adapter.access_key_len : nil,
           'secret_key_len' => adapter.respond_to?(:secret_key_len) ? adapter.secret_key_len : nil,
           'detected_cred_keys' => adapter.respond_to?(:detected_cred_keys) ? adapter.detected_cred_keys : nil,
@@ -575,7 +575,7 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
           ip_address: extract_client_ip(req),
           metadata: {
             filename: file_rec['original_name'],
-            bytes_sent: File.size(target_file)
+            bytes_sent: data.bytesize
           }
         )
         return
@@ -1012,7 +1012,7 @@ class CaseOrganizerServlet < WEBrick::HTTPServlet::AbstractServlet
       ip_address: extract_client_ip(req),
       metadata: {
         filename: download_name,
-        bytes_sent: File.size(target_file)
+        bytes_sent: data.bytesize
       }
     )
   end
